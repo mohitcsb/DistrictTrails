@@ -1,352 +1,1482 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>District Travel Tracker & Timeline</title>
-  <style>
-    :root {
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --danger: #ef4444;
-      --dark: #1e293b;
-      --gray: #64748b;
-      --light-bg: #f8fafc;
-      --border: #e2e8f0;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>District Trails</title>
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--light-bg); color: var(--dark); padding-bottom: 40px; }
+<style>
+  :root {
+    --green: #0d9488;
+    --dark-green: #087f76;
+    --dark: #17324d;
+    --gray: #64748b;
+    --light: #f0fdfa;
+    --white: #ffffff;
+    --border: #dbe7e5;
+    --amber: #f59e0b;
+  }
 
-    /* Header */
-    header { background: #fff; border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-    h1 { font-size: 1.25rem; font-weight: 700; color: var(--dark); }
-    .header-actions { display: flex; gap: 10px; }
+  * { box-sizing: border-box; }
 
-    /* Layout Container */
-    .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: var(--dark);
+    background: #f8fafc;
+  }
 
-    /* Buttons */
-    .btn { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-    .btn:hover { background: var(--primary-hover); }
-    .btn-secondary { background: white; border: 1px solid var(--border); color: var(--dark); }
-    .btn-secondary:hover { background: var(--light-bg); }
-    .icon-button { background: none; border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
-    .icon-button.danger { color: var(--danger); border-color: #fca5a5; }
+  header {
+    color: white;
+    padding: 60px 20px 90px;
+    text-align: center;
+    background:
+      linear-gradient(rgba(0, 60, 55, .62), rgba(0, 60, 55, .68)),
+      var(--header-photo, none) var(--header-focal, center) / cover;
+    background-color: #0d9488;
+    position: relative;
+    cursor: default;
+    user-select: none;
+  }
 
-    /* Timeline Styling */
-    .timeline { position: relative; padding-left: 20px; border-left: 2px solid var(--border); margin-top: 1rem; }
-    .timeline-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; }
-    .timeline-item::before { content: ''; position: absolute; left: -27px; top: 18px; width: 12px; height: 12px; border-radius: 50%; background: var(--primary); border: 2px solid #fff; }
-    .timeline-header { display: flex; justify-content: space-between; align-items: flex-start; }
-    .timeline-date { font-size: 0.8rem; color: var(--gray); font-weight: 600; margin-bottom: 4px; }
-    .card-actions { display: flex; gap: 8px; }
+  header.has-focal-control { cursor: grab; }
+  header.has-focal-control:active { cursor: grabbing; }
 
-    /* Modal Styling */
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
-    .modal.active { display: flex; }
-    .modal-content { background: white; border-radius: 8px; padding: 1.5rem; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-    .form-group { margin-bottom: 1rem; }
-    .form-group label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 4px; }
-    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; }
-    
-    .empty { text-align: center; color: var(--gray); padding: 2rem; }
-  </style>
+  .header-by { font-size: .5em; font-weight: normal; opacity: .85; }
+  .header-country { font-family: Georgia, serif; font-style: italic; font-size: 1.15rem; opacity: .85; margin-top: -6px; margin-bottom: 10px; }
+
+  .header-focal-hint {
+    margin-top: 10px; font-size: .75rem; opacity: .7;
+  }
+
+  .header-photo-picker-btn {
+    margin-top: 18px;
+    background: rgba(255,255,255,.18);
+    color: white;
+    border: 1px solid rgba(255,255,255,.5);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: .85rem;
+    cursor: pointer;
+  }
+
+  header h1 { margin: 0 0 12px; font-family: Georgia, serif; font-size: clamp(2.2rem, 7vw, 4.2rem); }
+  header p { max-width: 600px; margin: auto; line-height: 1.7; font-size: 1.05rem; }
+
+  .smallcaps {
+    text-transform: capitalize;
+    font-variant: small-caps;
+    font-variant-caps: small-caps;
+    letter-spacing: .02em;
+  }
+
+  .container { width: min(1320px, 95%); margin: auto; }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-top: -55px;
+    position: relative;
+  }
+
+  .datetime-bar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 16px;
+  }
+
+  .datetime-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fffdf8;
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    padding: 8px 16px;
+    color: var(--dark);
+    font-size: .82rem;
+    font-weight: bold;
+  }
+
+  .datetime-card::before { content: "•"; color: var(--green); }
+
+  .refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--green);
+    color: white;
+    border: 0;
+    border-radius: 30px;
+    padding: 8px 16px;
+    font-size: .82rem;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .refresh-btn:hover { background: var(--dark-green); }
+
+  .stat {
+    padding: 18px;
+    text-align: center;
+    border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.05);
+    border: 1px solid var(--border);
+  }
+
+  .stat-blue { background: #eef5f7; }
+  .stat-terracotta { background: #fbf1ec; }
+  .stat-green { background: #eef6ee; }
+  .stat-brown { background: #f6f1ea; }
+
+  .stat strong { display: block; font-size: 1.7rem; }
+  .stat-blue strong { color: #3b6e7d; }
+  .stat-terracotta strong { color: #b1552f; }
+  .stat-green strong { color: #4f7a4f; }
+  .stat-brown strong { color: #7a5f43; }
+  .stat span { color: var(--dark); font-size: .82rem; font-weight: bold; text-transform: capitalize; }
+
+  .progress-wrap { margin: 22px 0; }
+  .progress-bar-bg { background: #e2e8f0; border-radius: 20px; height: 12px; overflow: hidden; }
+  .progress-bar-fill { background: var(--green); height: 100%; border-radius: 20px; transition: width .4s; }
+  .progress-label { font-size: 1.05rem; color: var(--dark); margin-top: 8px; text-align: right; }
+  .progress-label strong { font-weight: bold; color: var(--green); }
+
+  .banner {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin: 20px 0;
+    font-size: .95rem;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    margin: 25px 0 20px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .tab {
+    background: none;
+    border: 0;
+    padding: 12px 18px;
+    font-weight: 800;
+    font-size: 1.08rem;
+    color: var(--gray);
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+  }
+
+  .tab.active { color: var(--green); border-bottom-color: var(--green); }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 200px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    font-size: 1rem;
+  }
+
+  select.tag-filter {
+    padding: 12px 10px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    font-size: .9rem;
+    background: white;
+  }
+
+  .button {
+    border: 0;
+    border-radius: 9px;
+    padding: 11px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: .9rem;
+  }
+
+  .button-primary { color: white; background: var(--green); }
+  .button-primary:hover { background: var(--dark-green); }
+  .button-cancel { background: #e2e8f0; color: var(--dark); }
+  .button-ghost { background: white; border: 1px solid var(--border); color: var(--dark); }
+
+  .section { padding: 10px 0 60px; }
+  .section-title { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 18px; flex-wrap: wrap; }
+  h2 { font-family: Georgia, serif; font-size: 2rem; margin: 0; }
+
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+  .card {
+    background: white; border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,.04); display: flex; flex-direction: column;
+    transition: transform .25s ease, box-shadow .25s ease;
+    opacity: 0; transform: translateY(18px);
+    animation: cardIn .5s ease forwards;
+  }
+  .card:hover { transform: translateY(-6px); box-shadow: 0 14px 28px rgba(0,0,0,.12); }
+
+  @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.in-view { opacity: 1; transform: translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { animation: none; opacity: 1; transform: none; }
+    .card:hover { transform: none; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
+
+  .card-image-wrap { position: relative; }
+  .card-image { width: 100%; height: 200px; object-fit: cover; background: #ccfbf1; display: block; cursor: pointer; }
+  .photo-count-badge {
+    position: absolute; bottom: 8px; right: 8px;
+    background: rgba(0,0,0,.6); color: white; font-size: .75rem;
+    padding: 3px 8px; border-radius: 20px;
+  }
+
+  .video-play-btn {
+    position: absolute; bottom: 8px; left: 8px;
+    background: rgba(193,80,46,.9); color: white; border: 0; font-size: .75rem;
+    padding: 4px 10px; border-radius: 20px; cursor: pointer; font-weight: bold;
+  }
+
+  .card-content { padding: 18px; flex: 1; display: flex; flex-direction: column; }
+  .card h3 { margin: 0 0 6px; font-family: Georgia, serif; font-size: 1.35rem; }
+  .location { color: var(--green); font-weight: bold; margin-bottom: 10px; font-size: .95rem; }
+  .date-line { color: var(--gray); font-size: .85rem; }
+  .tags-line { margin: 8px 0; display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag-chip { background: var(--light); color: var(--dark-green); font-size: .72rem; padding: 3px 9px; border-radius: 20px; }
+  .note { color: #526579; line-height: 1.55; margin: 10px 0; flex: 1; font-size: .92rem; }
+
+  .card-bottom { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 8px; }
+  .stars { color: var(--amber); font-size: .9rem; }
+  .card-actions { display: flex; gap: 10px; }
+  .icon-button { border: 0; background: transparent; cursor: pointer; font-size: .85rem; color: var(--gray); }
+  .icon-button.danger { color: #b45353; }
+
+  .empty { grid-column: 1 / -1; text-align: center; background: white; padding: 45px; border-radius: 12px; color: var(--gray); }
+  footer { padding: 30px; text-align: center; color: var(--gray); }
+
+  /* Timeline */
+  .timeline { position: relative; margin-left: 10px; padding-left: 26px; border-left: 3px solid var(--border); }
+  .timeline-item { position: relative; margin-bottom: 26px; background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .timeline-item::before {
+    content: ""; position: absolute; left: -35px; top: 20px; width: 12px; height: 12px;
+    background: var(--green); border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 2px var(--green);
+  }
+  .timeline-date { color: var(--green); font-weight: bold; font-size: .85rem; margin-bottom: 4px; }
+
+  /* Map / grid by division */
+  .division-block { margin-bottom: 24px; }
+  .division-title { font-weight: bold; color: var(--dark); margin-bottom: 10px; font-size: 1.05rem; }
+  .district-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+  .district-tile {
+    padding: 12px 8px; text-align: center; border-radius: 10px; font-size: .82rem;
+    border: 1px solid var(--border); background: #f1f5f9; color: var(--gray); cursor: default;
+  }
+  .district-tile.visited { background: var(--green); color: white; border-color: var(--dark-green); font-weight: bold; }
+  .district-tile.wishlist-marked { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+
+  /* Stats */
+  .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .stats-card { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+  .stats-card h4 { margin: 0 0 12px; font-size: 1rem; }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: .85rem; }
+  .bar-label { width: 110px; flex-shrink: 0; color: var(--gray); }
+  .bar-track { flex: 1; background: #f1f5f9; border-radius: 6px; height: 14px; overflow: hidden; }
+  .bar-fill { background: var(--green); height: 100%; }
+  .bar-value { width: 24px; text-align: right; color: var(--gray); font-size: .8rem; }
+
+  /* Wishlist */
+  .wishlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .wishlist-tile {
+    padding: 14px 10px; text-align: center; border-radius: 10px; font-size: .85rem;
+    border: 1px solid var(--border); background: white; cursor: pointer;
+  }
+  .wishlist-tile.marked { background: #fef3c7; border-color: #fde68a; font-weight: bold; }
+
+  /* Modal */
+  .modal { display: none; position: fixed; inset: 0; z-index: 20; padding: 20px; background: rgba(0,0,0,.65); align-items: center; justify-content: center; overflow-y: auto; }
+  .modal.show { display: flex; }
+  .modal-box { width: min(640px, 100%); max-height: 90vh; overflow-y: auto; padding: 26px; border-radius: 15px; background: white; margin: auto; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; }
+  .modal-header h2 { font-size: 1.6rem; }
+  .close { border: 0; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-size: 1.3rem; background: #f1f5f9; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label { font-size: .82rem; font-weight: bold; }
+  .form-group input, .form-group textarea, .form-group select {
+    width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit;
+  }
+  .form-group textarea { min-height: 80px; resize: vertical; }
+  .hint { font-size: .75rem; color: var(--gray); }
+
+  .photo-picker { border: 2px dashed var(--border); border-radius: 10px; padding: 16px; text-align: center; cursor: pointer; }
+
+  .cover-focal-box {
+    margin-top: 12px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .cover-focal-img {
+    width: 100%;
+    height: 160px;
+    background-size: cover;
+    cursor: grab;
+    user-select: none;
+  }
+  .cover-focal-img:active { cursor: grabbing; }
+  .photo-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 12px; }
+  .photo-preview { position: relative; border-radius: 8px; overflow: hidden; border: 2px solid transparent; }
+  .photo-preview img { width: 100%; height: 80px; object-fit: cover; display: block; }
+  .photo-preview.cover { border-color: var(--green); }
+  .photo-preview .cover-badge { position: absolute; top: 3px; left: 3px; background: var(--green); color: white; font-size: .6rem; padding: 2px 5px; border-radius: 4px; }
+  .photo-preview .remove-photo { position: absolute; top: 3px; right: 3px; background: rgba(0,0,0,.6); color: white; border: 0; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: .7rem; }
+  .photo-preview .set-cover { position: absolute; bottom: 3px; right: 3px; background: rgba(255,255,255,.9); border: 0; border-radius: 4px; font-size: .6rem; padding: 2px 5px; cursor: pointer; }
+
+  .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+  .upload-status { font-size: .8rem; color: var(--gray); margin-top: 8px; }
+
+  /* Lightbox */
+  .lightbox { display: none; position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,.9); align-items: center; justify-content: center; flex-direction: column; }
+  .lightbox.show { display: flex; }
+  .lightbox img { max-width: 90vw; max-height: 78vh; border-radius: 8px; }
+  .video-frame { width: min(90vw, 900px); height: min(78vh, 506px); border: 0; border-radius: 8px; background: black; }
+  .lightbox-controls { display: flex; gap: 20px; align-items: center; margin-top: 16px; }
+  .lightbox-controls button { background: white; border: 0; border-radius: 50%; width: 42px; height: 42px; cursor: pointer; font-size: 1.1rem; }
+  .lightbox-close { position: absolute; top: 20px; right: 24px; background: white; border: 0; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; font-size: 1.2rem; }
+  .lightbox-count { color: white; font-size: .85rem; }
+
+  .loading { text-align: center; padding: 60px; color: var(--gray); }
+
+  /* Print passport */
+  #passportPrint { display: none; }
+  @media print {
+    header, .stats-row, .progress-wrap, .banner, .tabs, .toolbar, footer, .modal, .lightbox, .section > .section-title { display: none !important; }
+    #app-view { display: none !important; }
+    #passportPrint { display: block !important; }
+    .passport-entry { break-inside: avoid; border: 1px solid #ccc; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+    .passport-title { text-align: center; font-family: Georgia, serif; font-size: 1.8rem; margin-bottom: 20px; }
+  }
+
+  @media (max-width: 800px) {
+    .cards { grid-template-columns: repeat(2, 1fr); }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .stats-grid { grid-template-columns: 1fr; }
+    .section-title { align-items: flex-start; flex-direction: column; }
+  }
+
+  @media (max-width: 550px) {
+    .cards, .form-grid { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .form-group.full { grid-column: auto; }
+    .section { padding: 10px 0 40px; }
+  }
+</style>
 </head>
+
 <body>
 
-  <!-- Top Global Header -->
-  <header>
-    <h1>Travel Tracker</h1>
-    <div class="header-actions">
-      <button class="btn btn-secondary" onclick="loadTrips()">🔄 Refresh</button>
-      <button class="btn" id="addDistrictBtn" style="display:none;" onclick="openAddModal()">+ Add District</button>
-    </div>
-  </header>
-
-  <!-- Main Container -->
+<header id="mainHeader">
   <div class="container">
-    <h2>Timeline</h2>
-    <div id="timelineList" class="timeline">
-      <div class="empty">Loading events...</div>
-    </div>
+    <h1>District Trails <span class="header-by">by Mohit</span></h1>
+    <div class="header-country">With Bangladesh</div>
+    <p class="smallcaps">Not a map. A memory of walking it.</p>
+    <button class="header-photo-picker-btn" id="headerPhotoBtn" onclick="openHeaderPhotoPicker()" style="display:none;">🖼 Set header photo</button>
+    <div class="header-focal-hint" id="headerFocalHint" style="display:none;">Drag on the header to adjust what stays in view</div>
+  </div>
+</header>
+
+<main class="container" id="app-view">
+
+  <div class="datetime-bar">
+    <div class="datetime-card" id="datetimeCard"></div>
+    <button class="refresh-btn" onclick="updateDatetimeCard()">↻ Refresh</button>
   </div>
 
-  <!-- Add/Edit Modal -->
-  <div class="modal" id="tripModal">
-    <div class="modal-content">
-      <h3 id="modalTitle" style="margin-bottom:1rem;">Add New District</h3>
-      <form id="tripForm" onsubmit="handleFormSubmit(event)">
+  <section class="stats-row">
+    <div class="stat stat-blue reveal"><strong id="districtCount">0</strong><span>Districts Visited</span></div>
+    <div class="stat stat-terracotta reveal"><strong id="memoryCount">0</strong><span>Travel Memories</span></div>
+    <div class="stat stat-green reveal"><strong id="photoCount">0</strong><span>Photos Saved</span></div>
+    <div class="stat stat-brown reveal"><strong id="latestDate">—</strong><span>Latest Visit</span></div>
+  </section>
+
+  <div class="progress-wrap">
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-label" id="progressLabel">0 of 64 districts visited</div>
+  </div>
+
+  <div class="banner" id="onThisDayBanner" style="display:none;"></div>
+
+  <div class="tabs">
+    <button class="tab active" data-view="cards">Memories</button>
+    <button class="tab" data-view="timeline">Timeline</button>
+    <button class="tab" data-view="map">Map</button>
+    <button class="tab" data-view="stats">Stats</button>
+    <button class="tab" data-view="wishlist">Wishlist</button>
+  </div>
+
+  <!-- Memories (cards) view -->
+  <section class="section" id="view-cards">
+    <div class="section-title">
+      <div><h2 class="smallcaps">My Travel Journal</h2><p class="hint smallcaps">Every trip, as I remember it.</p></div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="button button-ghost" id="randomMemoryBtn" onclick="showRandomMemory()" style="display:none;">🎲 Random Memory</button>
+        <button class="button button-ghost" id="exportJsonBtn" onclick="exportJSON()" style="display:none;">⬇ Export JSON</button>
+        <button class="button button-ghost" id="passportBtn" onclick="window.print()" style="display:none;">🖨 Passport</button>
+        <button class="button button-primary" id="addDistrictBtn" onclick="openAddModal()" style="display:none;">+ Add District</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input type="search" id="searchBox" class="search-box" placeholder="Search district, place, or note..." oninput="renderCards()">
+      <select id="tagFilter" class="tag-filter" onchange="renderCards()"><option value="">All tags</option></select>
+    </div>
+
+    <div id="tripCards" class="cards"></div>
+  </section>
+
+  <!-- Timeline view -->
+  <section class="section" id="view-timeline" style="display:none;">
+    <div class="section-title"><h2>Timeline</h2></div>
+    <div id="timelineList"></div>
+  </section>
+
+  <!-- Map view -->
+  <section class="section" id="view-map" style="display:none;">
+    <div class="section-title"><h2>District Map</h2></div>
+    <p class="hint">Grouped by division — a true geographic map may come later, this keeps every district clearly labeled for now.</p>
+    <div id="mapGrid"></div>
+  </section>
+
+  <!-- Stats view -->
+  <section class="section" id="view-stats" style="display:none;">
+    <div class="section-title"><h2>Stats</h2></div>
+    <div class="stats-grid" id="statsGrid"></div>
+  </section>
+
+  <!-- Wishlist view -->
+  <section class="section" id="view-wishlist" style="display:none;">
+    <div class="section-title"><h2>Wishlist</h2><p class="hint">Tap a district to mark it as somewhere you want to go next.</p></div>
+    <div class="wishlist-grid" id="wishlistGrid"></div>
+  </section>
+
+</main>
+
+<!-- Passport print view -->
+<div id="passportPrint" class="container">
+  <div class="passport-title">My District Trails Passport</div>
+  <div id="passportEntries"></div>
+</div>
+
+<footer id="mainFooter">District Trails</footer>
+
+<!-- Add/Edit modal -->
+<div id="modal" class="modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="modalTitle">Add Travel Memory</h2>
+      <button class="close" onclick="closeModal()">×</button>
+    </div>
+
+    <form id="tripForm">
+      <div class="form-grid">
+
         <div class="form-group">
-          <label for="district">District Name</label>
-          <input type="text" id="district" required />
-        </div>
-        
-        <div class="form-group">
-          <label for="place">Specific Place / Spot</label>
-          <input type="text" id="place" />
+          <label for="district">District *</label>
+          <select id="district" required></select>
         </div>
 
         <div class="form-group">
-          <label for="dateType">Date Selection</label>
-          <select id="dateType" onchange="toggleDateInputs()">
-            <option value="single">Single Date</option>
-            <option value="range">Date Range</option>
+          <label for="place">Favorite Place</label>
+          <input id="place" placeholder="Example: Jaflong">
+        </div>
+
+        <div class="form-group full">
+          <label for="dateType">How well do you remember the date? *</label>
+          <select id="dateType" onchange="renderDateInputs()">
+            <option value="exact">Exact date</option>
+            <option value="monthYear">Month and year</option>
+            <option value="year">Year only</option>
+            <option value="approxYear">Approximate year (around...)</option>
+            <option value="range">Date range</option>
+            <option value="unknown">Unknown</option>
           </select>
         </div>
 
-        <div class="form-group" id="singleDateGroup">
-          <label for="dateVal">Date</label>
-          <input type="date" id="dateVal" />
-        </div>
+        <div class="form-group full" id="dateInputsWrap"></div>
 
-        <div class="form-group" id="rangeDateGroup" style="display:none;">
-          <label for="dateFrom">From Date</label>
-          <input type="date" id="dateFrom" style="margin-bottom: 8px;" />
-          <label for="dateTo">To Date</label>
-          <input type="date" id="dateTo" />
+        <div class="form-group">
+          <label for="rating">Rating</label>
+          <select id="rating">
+            <option value="5">★★★★★</option>
+            <option value="4">★★★★☆</option>
+            <option value="3">★★★☆☆</option>
+            <option value="2">★★☆☆☆</option>
+            <option value="1">★☆☆☆☆</option>
+          </select>
         </div>
 
         <div class="form-group">
-          <label for="rating">Rating (1-5)</label>
-          <input type="number" id="rating" min="1" max="5" value="5" />
+          <label for="tags">Tags</label>
+          <input id="tags" placeholder="beach, family, waterfall">
         </div>
 
-        <div class="form-group">
-          <label for="tags">Tags (comma separated)</label>
-          <input type="text" id="tags" placeholder="nature, hill, beach" />
-        </div>
-
-        <div class="form-group">
-          <label for="note">Notes / Memories</label>
-          <textarea id="note" rows="3"></textarea>
-        </div>
-
-        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:1rem;">
-          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-          <button type="submit" class="btn" id="saveButton">Save Entry</button>
-        </div>
-        <div id="uploadStatus" style="font-size:0.8rem; color:var(--gray); margin-top:8px;"></div>
-      </form>
-    </div>
-  </div>
-
-  <script>
-    // Configuration
-    const SCRIPT_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL"; // REPLACE WITH YOUR DEPLOYMENT URL
-    
-    // Application State
-    let trips = [];
-    let editingId = null;
-    let isEditMode = false;
-    let adminKey = "";
-
-    // Initialization
-    window.addEventListener("DOMContentLoaded", () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      adminKey = urlParams.get("key") || "";
-      
-      if (adminKey) {
-        isEditMode = true;
-        document.getElementById("addDistrictBtn").style.display = "inline-block";
-      }
-
-      loadTrips();
-    });
-
-    // API Wrapper
-    async function callApi(payload) {
-      if (isEditMode) {
-        payload.adminKey = adminKey;
-      }
-      const response = await fetch(SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
-      return await response.json();
-    }
-
-    // Load Data
-    async function loadTrips() {
-      const container = document.getElementById("timelineList");
-      container.innerHTML = '<div class="empty">Loading events...</div>';
-      
-      try {
-        const response = await fetch(`${SCRIPT_URL}?action=getTrips`);
-        const data = await response.json();
-        trips = data.trips || [];
-        renderTimeline();
-      } catch (err) {
-        console.error("Failed to load trips:", err);
-        container.innerHTML = '<div class="empty">Failed to load data. Please check connection.</div>';
-      }
-    }
-
-    // Render Timeline View
-    function renderTimeline() {
-      const container = document.getElementById("timelineList");
-
-      if (!trips.length) {
-        container.innerHTML = '<div class="empty">No events on timeline.</div>';
-        return;
-      }
-
-      // Sort newest to oldest based on dateValue
-      const sorted = [...trips].sort((a,b) => (b.dateValue || "").localeCompare(a.dateValue || ""));
-
-      container.innerHTML = sorted.map(t => `
-        <div class="timeline-item">
-          <div class="timeline-header">
-            <div>
-              <div class="timeline-date">${formatDateValue(t)}</div>
-              <strong style="font-size:1.1rem; color:var(--dark);">${escapeHtml(t.district)}</strong> 
-              ${t.place ? `<span style="color:var(--gray)">— ${escapeHtml(t.place)}</span>` : ""}
-            </div>
-            ${isEditMode ? `
-              <div class="card-actions">
-                <button class="icon-button" onclick="event.stopPropagation(); openEditModal('${t.id}')">✏️ Edit</button>
-                <button class="icon-button danger" onclick="event.stopPropagation(); deleteTrip('${t.id}')">🗑 Delete</button>
-              </div>
-            ` : ""}
+        <div class="form-group full">
+          <label>Photos</label>
+          <div class="photo-picker" onclick="document.getElementById('photoInput').click()">
+            📷 Click to select one or more photos (up to <span id="maxPhotosLabel"></span>)
           </div>
-          ${t.note ? `<p style="margin:8px 0 0; color:#526579; font-size:.9rem;">${escapeHtml(t.note)}</p>` : ""}
+          <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotoSelect(event)">
+
+          <div class="cover-focal-box" id="coverFocalBox" style="display:none;">
+            <div class="cover-focal-img" id="coverFocalImg"></div>
+          </div>
+          <div class="hint" id="coverFocalHint" style="display:none;">Drag on the cover photo above to choose what stays in view on the card.</div>
+
+          <div class="photo-preview-grid" id="photoPreviewGrid"></div>
+          <div class="upload-status" id="uploadStatus"></div>
         </div>
-      `).join("");
-    }
 
-    // Form Handling (Add/Edit)
-    async function handleFormSubmit(e) {
-      e.preventDefault();
-      const saveBtn = document.getElementById("saveButton");
-      const statusEl = document.getElementById("uploadStatus");
-      saveBtn.disabled = true;
-      statusEl.textContent = "Saving...";
+        <div class="form-group full">
+          <label for="videoLink">Video (optional)</label>
+          <input id="videoLink" placeholder="Paste a Google Drive video share link">
+          <span class="hint">Upload the video to your Drive folder yourself first, then paste its share link here — it'll play inline in the app.</span>
+        </div>
 
-      try {
-        const dt = document.getElementById("dateType").value;
-        let dateVal = "";
-        
-        if (dt === "range") {
-          const from = document.getElementById("dateFrom").value;
-          const to = document.getElementById("dateTo").value;
-          dateVal = `${from}:${to}`;
-        } else {
-          dateVal = document.getElementById("dateVal").value;
+        <div class="form-group full">
+          <label for="note">Travel Note</label>
+          <textarea id="note" placeholder="Write something about this visit..."></textarea>
+        </div>
+
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="button button-cancel" onclick="closeModal()">Cancel</button>
+        <button class="button button-primary" type="submit" id="saveButton">Save Memory</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox">
+  <button class="lightbox-close" onclick="closeLightbox()">×</button>
+  <img id="lightboxImg" src="">
+  <div class="lightbox-controls">
+    <button onclick="lightboxNav(-1)">‹</button>
+    <span class="lightbox-count" id="lightboxCount"></span>
+    <button onclick="lightboxNav(1)">›</button>
+  </div>
+</div>
+
+<!-- Video lightbox -->
+<div id="videoLightbox" class="lightbox">
+  <button class="lightbox-close" onclick="closeVideoLightbox()">×</button>
+  <iframe id="videoLightboxFrame" class="video-frame" src="" allow="autoplay" allowfullscreen></iframe>
+</div>
+
+<!-- Header photo picker -->
+<div id="headerPhotoModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Choose a header photo</h2>
+      <button class="close" onclick="closeHeaderPhotoPicker()">×</button>
+    </div>
+    <p class="hint" style="margin-top:14px;">Pick any photo you've already uploaded to a trip — it becomes the page's header background for everyone.</p>
+    <div class="photo-preview-grid" id="headerPhotoChoices" style="margin-top:14px;"></div>
+  </div>
+</div>
+
+<script>
+/* ======================= CONFIG ======================= */
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby0tV1BuxELWA9PQtav2n_hsRNzNR00MMqWaWGbB6K0BpNXHPmgnOgnhb_IL60aYKxEgQ/exec";
+
+// This is a SHA-256 hash of your secret key, NOT the key itself — safe to
+// commit to a public repo. See SETUP_GUIDE.md for how to generate this from
+// your chosen secret. The plaintext key is never stored in this file.
+const ADMIN_KEY_HASH = "d47fded9ed590cb8943265dff91b671ecf4a1deb68ead372a906ce0ccceda756";
+
+const MAX_PHOTOS = 50;
+
+// Edit mode only unlocks when the page is opened with ?key=YOUR-SECRET in the
+// URL and that key hashes to ADMIN_KEY_HASH above. Anyone visiting the plain
+// link (no key, or a wrong key) gets a view-only page. Resolved in init().
+let isEditMode = false;
+let adminKeyPlaintext = null; // held in memory only, sent to the backend on writes
+
+async function sha256Hex(text) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2, "0"); }).join("");
+}
+
+async function resolveEditMode() {
+  const urlKey = new URLSearchParams(window.location.search).get("key");
+  if (!urlKey) return;
+  const hash = await sha256Hex(urlKey);
+  if (hash === ADMIN_KEY_HASH) {
+    isEditMode = true;
+    adminKeyPlaintext = urlKey;
+  }
+}
+
+/* ======================= DISTRICTS (64, by division) ======================= */
+const DIVISIONS = {
+  "Dhaka": ["Dhaka","Faridpur","Gazipur","Gopalganj","Kishoreganj","Madaripur","Manikganj","Munshiganj","Narayanganj","Narsingdi","Rajbari","Shariatpur","Tangail"],
+  "Chattogram": ["Bandarban","Brahmanbaria","Chandpur","Chattogram","Cumilla","Cox's Bazar","Feni","Khagrachari","Lakshmipur","Noakhali","Rangamati"],
+  "Rajshahi": ["Bogura","Chapainawabganj","Joypurhat","Naogaon","Natore","Pabna","Rajshahi","Sirajganj"],
+  "Khulna": ["Bagerhat","Chuadanga","Jashore","Jhenaidah","Khulna","Kushtia","Magura","Meherpur","Narail","Satkhira"],
+  "Barishal": ["Barguna","Barishal","Bhola","Jhalokati","Patuakhali","Pirojpur"],
+  "Sylhet": ["Habiganj","Moulvibazar","Sunamganj","Sylhet"],
+  "Rangpur": ["Dinajpur","Gaibandha","Kurigram","Lalmonirhat","Nilphamari","Panchagarh","Rangpur","Thakurgaon"],
+  "Mymensingh": ["Jamalpur","Mymensingh","Netrokona","Sherpur"]
+};
+const ALL_DISTRICTS = Object.values(DIVISIONS).flat();
+
+/* ======================= STATE ======================= */
+let trips = [];
+let currentView = "cards";
+let editingId = null;
+let pendingPhotos = []; // {file, previewUrl, uploaded:false, fileId:null}
+let coverIndex = 0;
+let pendingCoverFocalPosition = "50% 50%";
+let lightboxPhotos = [];
+let lightboxIndex = 0;
+let wishlist = JSON.parse(localStorage.getItem("districtWishlist") || "[]");
+let headerPhotoId = "";
+
+/* ======================= INIT ======================= */
+document.getElementById("district").innerHTML = ALL_DISTRICTS
+  .map(function(d){ return '<option value="' + d + '">' + d + '</option>'; }).join("");
+
+document.querySelectorAll(".tab").forEach(function(tab){
+  tab.addEventListener("click", function(){
+    document.querySelectorAll(".tab").forEach(function(t){ t.classList.remove("active"); });
+    tab.classList.add("active");
+    currentView = tab.dataset.view;
+    switchView();
+  });
+});
+
+function switchView() {
+  ["cards","timeline","map","stats","wishlist"].forEach(function(v){
+    document.getElementById("view-" + v).style.display = (v === currentView) ? "" : "none";
+  });
+  if (currentView === "cards") renderCards();
+  if (currentView === "timeline") renderTimeline();
+  if (currentView === "map") renderMap();
+  if (currentView === "stats") renderStats();
+  if (currentView === "wishlist") renderWishlist();
+}
+
+async function callApi(payload) {
+  const res = await fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    body: JSON.stringify(Object.assign({ adminKey: adminKeyPlaintext }, payload))
+  });
+  return res.json();
+}
+
+async function loadTrips() {
+  document.getElementById("tripCards").innerHTML = '<div class="loading">Loading your travel journal…</div>';
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + "?action=getTrips");
+    const data = await res.json();
+    trips = data.trips || [];
+  } catch (err) {
+    document.getElementById("tripCards").innerHTML =
+      '<div class="empty">Could not load data. Check that APPS_SCRIPT_URL is set correctly.</div>';
+    return;
+  }
+  populateTagFilter();
+  checkOnThisDay();
+  switchView();
+}
+
+let headerFocalPosition = "50% 50%";
+
+async function loadHeaderPhoto() {
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + "?action=getSettings");
+    const data = await res.json();
+    headerPhotoId = data.headerPhotoId || "";
+    headerFocalPosition = data.headerFocalPosition || "50% 50%";
+    applyHeaderPhoto();
+  } catch (err) {
+    // Keep the plain fallback background if settings can't be reached.
+  }
+}
+
+function applyHeaderPhoto() {
+  const header = document.getElementById("mainHeader");
+  if (headerPhotoId) {
+    header.style.setProperty("--header-photo", "url(" + photoUrlHiRes(headerPhotoId) + ")");
+    header.style.setProperty("--header-focal", headerFocalPosition);
+  } else {
+    header.style.removeProperty("--header-photo");
+    header.style.removeProperty("--header-focal");
+  }
+}
+
+function setupHeaderFocalDrag() {
+  const header = document.getElementById("mainHeader");
+  header.classList.add("has-focal-control");
+  document.getElementById("headerFocalHint").style.display = "";
+
+  let dragging = false;
+
+  function positionFromEvent(evt) {
+    const rect = header.getBoundingClientRect();
+    const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+    const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+    const x = Math.round(Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1) * 100);
+    const y = Math.round(Math.min(Math.max((clientY - rect.top) / rect.height, 0), 1) * 100);
+    return x + "% " + y + "%";
+  }
+
+  function startDrag(evt) {
+    if (!headerPhotoId) return;
+    dragging = true;
+    headerFocalPosition = positionFromEvent(evt);
+    applyHeaderPhoto();
+  }
+  function moveDrag(evt) {
+    if (!dragging) return;
+    headerFocalPosition = positionFromEvent(evt);
+    applyHeaderPhoto();
+  }
+  async function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    await callApi({ action: "setSetting", key: "headerFocalPosition", value: headerFocalPosition });
+  }
+
+  header.addEventListener("mousedown", startDrag);
+  window.addEventListener("mousemove", moveDrag);
+  window.addEventListener("mouseup", endDrag);
+  header.addEventListener("touchstart", startDrag, { passive: true });
+  window.addEventListener("touchmove", moveDrag, { passive: true });
+  window.addEventListener("touchend", endDrag);
+}
+
+function openHeaderPhotoPicker() {
+  const allPhotos = [];
+  trips.forEach(function(t){
+    (t.photoFileIds || []).forEach(function(fid){
+      allPhotos.push({ fileId: fid, label: t.district });
+    });
+  });
+  const grid = document.getElementById("headerPhotoChoices");
+  if (!allPhotos.length) {
+    grid.innerHTML = '<p class="hint">No photos uploaded yet — add a memory with photos first.</p>';
+  } else {
+    grid.innerHTML = allPhotos.map(function(p){
+      return `
+        <div class="photo-preview ${p.fileId === headerPhotoId ? "cover" : ""}" style="cursor:pointer;" onclick="setHeaderPhoto('${p.fileId}')">
+          ${p.fileId === headerPhotoId ? '<span class="cover-badge">Current</span>' : ""}
+          <img src="${photoUrl(p.fileId)}" title="${p.label}">
+        </div>
+      `;
+    }).join("");
+  }
+  document.getElementById("headerPhotoModal").classList.add("show");
+}
+
+function closeHeaderPhotoPicker() {
+  document.getElementById("headerPhotoModal").classList.remove("show");
+}
+
+async function setHeaderPhoto(fileId) {
+  headerPhotoId = fileId;
+  applyHeaderPhoto();
+  closeHeaderPhotoPicker();
+  await callApi({ action: "setSetting", key: "headerPhotoId", value: fileId });
+}
+
+document.getElementById("headerPhotoModal").addEventListener("click", function(event){
+  if (event.target.id === "headerPhotoModal") closeHeaderPhotoPicker();
+});
+
+/* ======================= HELPERS ======================= */
+function extractDriveFileId(url) {
+  if (!url) return "";
+  const trimmed = url.trim();
+  // Handles: /file/d/ID/..., ?id=ID, or a bare file ID pasted directly.
+  const patterns = [/\/file\/d\/([a-zA-Z0-9_-]+)/, /[?&]id=([a-zA-Z0-9_-]+)/];
+  for (let i = 0; i < patterns.length; i++) {
+    const m = trimmed.match(patterns[i]);
+    if (m) return m[1];
+  }
+  if (/^[a-zA-Z0-9_-]{20,}$/.test(trimmed)) return trimmed;
+  return "";
+}
+
+function videoEmbedUrl(fileId) {
+  return "https://drive.google.com/file/d/" + fileId + "/preview";
+}
+
+function photoUrl(fileId) {
+  return "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w800";
+}
+
+function photoUrlHiRes(fileId) {
+  return "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w1920";
+}
+
+function formatDateValue(trip) {
+  const t = trip.dateType, v = trip.dateValue || "";
+  if (t === "exact") return new Date(v + "T00:00:00").toLocaleDateString(undefined, {day:"numeric", month:"short", year:"numeric"});
+  if (t === "monthYear") {
+    const [y,m] = v.split("-");
+    return new Date(y, (m||1)-1).toLocaleDateString(undefined, {month:"long", year:"numeric"});
+  }
+  if (t === "year") return v;
+  if (t === "approxYear") return "Around " + v;
+  if (t === "range") {
+    const [from,to] = v.split(":");
+    const f = new Date(from + "T00:00:00").toLocaleDateString(undefined, {day:"numeric", month:"short", year:"numeric"});
+    const tt = to ? new Date(to + "T00:00:00").toLocaleDateString(undefined, {day:"numeric", month:"short", year:"numeric"}) : "";
+    return tt ? (f + " – " + tt) : f;
+  }
+  return "Date unknown";
+}
+
+function sortKeyForDate(trip) {
+  const v = trip.dateValue || "";
+  if (trip.dateType === "range") return v.split(":")[0] || "0000";
+  if (trip.dateType === "monthYear") return v + "-01";
+  if (trip.dateType === "year" || trip.dateType === "approxYear") return v + "-01-01";
+  if (trip.dateType === "unknown") return "0000-00-00";
+  return v;
+}
+
+function populateTagFilter() {
+  const allTags = new Set();
+  trips.forEach(function(t){ (t.tags||[]).forEach(function(tag){ allTags.add(tag); }); });
+  const sel = document.getElementById("tagFilter");
+  sel.innerHTML = '<option value="">All tags</option>' +
+    Array.from(allTags).sort().map(function(tag){ return '<option value="'+tag+'">'+tag+'</option>'; }).join("");
+}
+
+function animateCount_(el, newValue) {
+  const from = Number(el.dataset.count || 0);
+  const to = Number(newValue);
+  if (from === to) { el.textContent = to; return; }
+  const duration = 600;
+  const start = performance.now();
+  function step(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(from + (to - from) * eased);
+    el.textContent = current;
+    if (progress < 1) requestAnimationFrame(step);
+    else el.dataset.count = to;
+  }
+  el.dataset.count = from;
+  requestAnimationFrame(step);
+}
+
+function updateStatsBar() {
+  const uniqueDistricts = new Set(trips.map(function(t){ return t.district.toLowerCase(); }));
+  animateCount_(document.getElementById("districtCount"), uniqueDistricts.size);
+  animateCount_(document.getElementById("memoryCount"), trips.length);
+  animateCount_(document.getElementById("photoCount"), trips.reduce(function(sum,t){ return sum + (t.photoFileIds||[]).length; }, 0));
+
+  if (trips.length) {
+    const sorted = [...trips].sort(function(a,b){ return sortKeyForDate(b).localeCompare(sortKeyForDate(a)); });
+    document.getElementById("latestDate").textContent = formatDateValue(sorted[0]);
+  } else {
+    document.getElementById("latestDate").textContent = "—";
+  }
+
+  const pct = Math.round((uniqueDistricts.size / ALL_DISTRICTS.length) * 100);
+  document.getElementById("progressFill").style.width = pct + "%";
+  document.getElementById("progressLabel").innerHTML =
+    "<strong>" + uniqueDistricts.size + "</strong> of <strong>" + ALL_DISTRICTS.length + "</strong> districts visited";
+}
+
+let revealObserver_ = null;
+function observeReveals() {
+  if (!revealObserver_) {
+    revealObserver_ = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in-view");
+          revealObserver_.unobserve(entry.target);
         }
+      });
+    }, { threshold: 0.15 });
+  }
+  document.querySelectorAll(".reveal:not(.in-view)").forEach(function(el){
+    revealObserver_.observe(el);
+  });
+}
 
-        const payload = {
-          action: editingId ? "updateTrip" : "addTrip",
-          id: editingId || String(Date.now()),
-          district: document.getElementById("district").value,
-          place: document.getElementById("place").value,
-          dateType: dt,
-          dateValue: dateVal,
-          rating: Number(document.getElementById("rating").value),
-          tags: document.getElementById("tags").value.split(",").map(s => s.trim().toLowerCase()).filter(Boolean),
-          note: document.getElementById("note").value
-        };
+function ordinalSuffix_(n) {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
 
-        const res = await callApi(payload);
-        
-        if (res.success) {
-          closeModal();
-          await loadTrips();
-        } else {
-          alert("Server error: " + (res.error || "Failed to save"));
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Error saving: " + err.message);
-      } finally {
-        saveBtn.disabled = false;
-        statusEl.textContent = "";
+function updateDatetimeCard() {
+  const now = new Date();
+  const day = ordinalSuffix_(now.getDate());
+  const month = now.toLocaleDateString(undefined, { month: "long" });
+  const year = now.getFullYear();
+  const time = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  document.getElementById("datetimeCard").textContent = day + " " + month + ", " + year + " " + time;
+}
+
+function checkOnThisDay() {
+  const today = new Date();
+  const mm = String(today.getMonth()+1).padStart(2,"0");
+  const dd = String(today.getDate()).padStart(2,"0");
+  const matches = trips.filter(function(t){
+    if (t.dateType !== "exact" && t.dateType !== "range") return false;
+    const first = (t.dateValue||"").split(":")[0];
+    return first.slice(5,7) === mm && first.slice(8,10) === dd;
+  });
+  const banner = document.getElementById("onThisDayBanner");
+  if (matches.length) {
+    const m = matches[0];
+    const years = new Date().getFullYear() - Number((m.dateValue||"").slice(0,4));
+    banner.style.display = "block";
+    banner.textContent = "📅 On this day, " + years + " year(s) ago, you were in " + m.district + (m.place ? " (" + m.place + ")" : "") + ".";
+  } else {
+    banner.style.display = "none";
+  }
+}
+
+/* ======================= CARDS VIEW ======================= */
+function renderCards() {
+  updateStatsBar();
+  const searchText = document.getElementById("searchBox").value.toLowerCase();
+  const tagFilterVal = document.getElementById("tagFilter").value;
+
+  const filtered = trips.filter(function(t){
+    const matchesSearch =
+      t.district.toLowerCase().includes(searchText) ||
+      (t.place||"").toLowerCase().includes(searchText) ||
+      (t.notes||"").toLowerCase().includes(searchText);
+    const matchesTag = !tagFilterVal || (t.tags||[]).includes(tagFilterVal);
+    return matchesSearch && matchesTag;
+  });
+
+  const container = document.getElementById("tripCards");
+  if (!filtered.length) {
+    container.innerHTML = '<div class="empty">No travel memory found.</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(function(t, i){
+    const photos = t.photoFileIds || [];
+    const coverId = t.coverFileId || photos[0];
+    const imgSrc = coverId ? photoUrl(coverId) : "";
+    const extra = photos.length > 1 ? '<span class="photo-count-badge">+' + (photos.length-1) + '</span>' : "";
+    const videoBtn = t.videoFileId ? `<button type="button" class="video-play-btn" onclick='openVideoLightbox("${t.videoFileId}")'>▶ Video</button>` : "";
+    const delay = Math.min(i, 10) * 60;
+    return `
+      <article class="card" style="animation-delay:${delay}ms;">
+        <div class="card-image-wrap">
+          ${imgSrc
+            ? `<img class="card-image" src="${imgSrc}" style="object-position:${t.coverFocalPosition || "50% 50%"};" alt="${t.district}" onclick='openLightbox(${JSON.stringify(photos)}, 0)'>`
+            : `<div class="card-image" style="display:flex;align-items:center;justify-content:center;color:#94a3b8;">No photo</div>`}
+          ${extra}
+          ${videoBtn}
+        </div>
+        <div class="card-content">
+          <h3>${t.place || "Beautiful Place"}</h3>
+          <div class="location">📍 ${t.district}</div>
+          <div class="date-line">Last visited: ${formatDateValue(t)}</div>
+          <div class="tags-line">${(t.tags||[]).map(function(tag){ return '<span class="tag-chip">'+tag+'</span>'; }).join("")}</div>
+          <p class="note smallcaps">${t.notes || "A wonderful travel memory."}</p>
+          <div class="card-bottom">
+            <span class="stars">${"★".repeat(t.rating)}${"☆".repeat(5-t.rating)}</span>
+            ${isEditMode ? `
+            <div class="card-actions">
+              <button class="icon-button" onclick="openEditModal('${t.id}')">Edit</button>
+              <button class="icon-button danger" onclick="deleteTrip('${t.id}')">Delete</button>
+            </div>` : ""}
+          </div>
+        </div>
+      </article>
+    `;
+  }).join("");
+
+  renderPassport(filtered);
+  observeReveals();
+}
+
+/* ======================= TIMELINE VIEW ======================= */
+function renderTimeline() {
+  updateStatsBar();
+  const sorted = [...trips].sort(function(a,b){ return sortKeyForDate(b).localeCompare(sortKeyForDate(a)); });
+  const el = document.getElementById("timelineList");
+  if (!sorted.length) { el.innerHTML = '<div class="empty">No memories yet.</div>'; return; }
+  el.innerHTML = '<div class="timeline">' + sorted.map(function(t){
+    return `
+      <div class="timeline-item reveal">
+        <div class="timeline-date">${formatDateValue(t)}</div>
+        <strong>${t.district}</strong>${t.place ? " — " + t.place : ""}
+        <p class="note" style="margin:8px 0 0;">${t.notes || ""}</p>
+      </div>
+    `;
+  }).join("") + '</div>';
+  observeReveals();
+}
+
+/* ======================= MAP (grid by division) VIEW ======================= */
+function renderMap() {
+  updateStatsBar();
+  const visited = new Set(trips.map(function(t){ return t.district; }));
+  const el = document.getElementById("mapGrid");
+  el.innerHTML = Object.keys(DIVISIONS).map(function(div){
+    return `
+      <div class="division-block reveal">
+        <div class="division-title">${div} Division</div>
+        <div class="district-grid">
+          ${DIVISIONS[div].map(function(d){
+            const cls = visited.has(d) ? "visited" : (wishlist.includes(d) ? "wishlist-marked" : "");
+            return `<div class="district-tile ${cls}">${d}</div>`;
+          }).join("")}
+        </div>
+      </div>
+    `;
+  }).join("");
+  observeReveals();
+}
+
+/* ======================= STATS VIEW ======================= */
+function renderStats() {
+  updateStatsBar();
+  const byDistrict = {};
+  trips.forEach(function(t){ byDistrict[t.district] = (byDistrict[t.district]||0) + 1; });
+  const mostVisited = Object.entries(byDistrict).sort(function(a,b){ return b[1]-a[1]; }).slice(0,6);
+
+  const byYear = {};
+  trips.forEach(function(t){
+    const y = sortKeyForDate(t).slice(0,4);
+    if (y === "0000") return;
+    byYear[y] = (byYear[y]||0) + 1;
+  });
+  const years = Object.entries(byYear).sort(function(a,b){ return a[0].localeCompare(b[0]); });
+
+  const ratingAvgByDistrict = {};
+  Object.keys(byDistrict).forEach(function(d){
+    const rs = trips.filter(function(t){ return t.district===d; }).map(function(t){ return t.rating; });
+    ratingAvgByDistrict[d] = rs.reduce(function(a,b){ return a+b; },0) / rs.length;
+  });
+  const topRated = Object.entries(ratingAvgByDistrict).sort(function(a,b){ return b[1]-a[1]; }).slice(0,6);
+
+  const maxVisits = Math.max(1, ...mostVisited.map(function(e){ return e[1]; }));
+  const maxYear = Math.max(1, ...years.map(function(e){ return e[1]; }));
+
+  document.getElementById("statsGrid").innerHTML = `
+    <div class="stats-card reveal">
+      <h4>Most-visited districts</h4>
+      ${mostVisited.length ? mostVisited.map(function(e){
+        return `<div class="bar-row"><span class="bar-label">${e[0]}</span><div class="bar-track"><div class="bar-fill" style="width:${(e[1]/maxVisits*100)}%"></div></div><span class="bar-value">${e[1]}</span></div>`;
+      }).join("") : '<p class="hint">No data yet.</p>'}
+    </div>
+    <div class="stats-card reveal">
+      <h4>Highest-rated districts</h4>
+      ${topRated.length ? topRated.map(function(e){
+        return `<div class="bar-row"><span class="bar-label">${e[0]}</span><div class="bar-track"><div class="bar-fill" style="width:${(e[1]/5*100)}%"></div></div><span class="bar-value">${e[1].toFixed(1)}</span></div>`;
+      }).join("") : '<p class="hint">No data yet.</p>'}
+    </div>
+    <div class="stats-card reveal" style="grid-column:1/-1;">
+      <h4>Visits per year</h4>
+      ${years.length ? years.map(function(e){
+        return `<div class="bar-row"><span class="bar-label">${e[0]}</span><div class="bar-track"><div class="bar-fill" style="width:${(e[1]/maxYear*100)}%"></div></div><span class="bar-value">${e[1]}</span></div>`;
+      }).join("") : '<p class="hint">No dated visits yet.</p>'}
+    </div>
+  `;
+  observeReveals();
+}
+
+/* ======================= WISHLIST VIEW ======================= */
+function renderWishlist() {
+  const visited = new Set(trips.map(function(t){ return t.district; }));
+  const remaining = ALL_DISTRICTS.filter(function(d){ return !visited.has(d); });
+  const el = document.getElementById("wishlistGrid");
+  if (!remaining.length) { el.innerHTML = '<div class="empty">You have visited every district! 🎉</div>'; return; }
+  el.innerHTML = remaining.map(function(d){
+    const marked = wishlist.includes(d);
+    return `<div class="wishlist-tile ${marked ? "marked" : ""}" onclick="toggleWishlist('${d}')">${marked ? "★ " : ""}${d}</div>`;
+  }).join("");
+}
+
+function toggleWishlist(district) {
+  const idx = wishlist.indexOf(district);
+  if (idx === -1) wishlist.push(district); else wishlist.splice(idx,1);
+  localStorage.setItem("districtWishlist", JSON.stringify(wishlist));
+  renderWishlist();
+}
+
+/* ======================= PASSPORT (print) ======================= */
+function renderPassport(list) {
+  document.getElementById("passportEntries").innerHTML = list.map(function(t){
+    return `
+      <div class="passport-entry">
+        <strong>${t.district}</strong>${t.place ? " — " + t.place : ""}<br>
+        <span>${formatDateValue(t)} · ${"★".repeat(t.rating)}${"☆".repeat(5-t.rating)}</span>
+        <p>${t.notes || ""}</p>
+      </div>
+    `;
+  }).join("");
+}
+
+/* ======================= RANDOM MEMORY ======================= */
+function showRandomMemory() {
+  if (!trips.length) { alert("No memories saved yet."); return; }
+  const t = trips[Math.floor(Math.random() * trips.length)];
+  const photos = t.photoFileIds || [];
+  alert("🎲 " + t.district + (t.place ? " — " + t.place : "") + "\n" + formatDateValue(t) + "\n\n" + (t.notes || ""));
+  if (photos.length) openLightbox(photos, 0);
+}
+
+/* ======================= EXPORT ======================= */
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(trips, null, 2)], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "district-trails-backup.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ======================= DATE INPUTS ======================= */
+function renderDateInputs(prefill) {
+  const type = document.getElementById("dateType").value;
+  const wrap = document.getElementById("dateInputsWrap");
+  const v = prefill || "";
+  if (type === "exact") {
+    wrap.innerHTML = '<label for="dateExact">Date *</label><input type="date" id="dateExact" required value="' + v + '">';
+  } else if (type === "monthYear") {
+    wrap.innerHTML = '<label for="dateMonthYear">Month & Year *</label><input type="month" id="dateMonthYear" required value="' + v + '">';
+  } else if (type === "year") {
+    wrap.innerHTML = '<label for="dateYear">Year *</label><input type="number" id="dateYear" required min="1900" max="2100" placeholder="2016" value="' + v + '">';
+  } else if (type === "approxYear") {
+    wrap.innerHTML = '<label for="dateApproxYear">Approximate Year *</label><input type="number" id="dateApproxYear" required min="1900" max="2100" placeholder="2016" value="' + v + '">';
+  } else if (type === "range") {
+    const parts = v.split(":");
+    wrap.innerHTML =
+      '<label>Date Range *</label>' +
+      '<div style="display:flex; gap:8px;">' +
+      '<input type="date" id="dateRangeFrom" required value="' + (parts[0]||"") + '">' +
+      '<input type="date" id="dateRangeTo" required value="' + (parts[1]||"") + '">' +
+      '</div>';
+  } else {
+    wrap.innerHTML = '<p class="hint">No date will be recorded for this memory.</p>';
+  }
+}
+
+function getDateValueFromForm() {
+  const type = document.getElementById("dateType").value;
+  if (type === "exact") return document.getElementById("dateExact").value;
+  if (type === "monthYear") return document.getElementById("dateMonthYear").value;
+  if (type === "year") return document.getElementById("dateYear").value;
+  if (type === "approxYear") return document.getElementById("dateApproxYear").value;
+  if (type === "range") return document.getElementById("dateRangeFrom").value + ":" + document.getElementById("dateRangeTo").value;
+  return "";
+}
+
+/* ======================= PHOTO PICKER ======================= */
+function handlePhotoSelect(event) {
+  const files = Array.from(event.target.files);
+  if (pendingPhotos.length + files.length > MAX_PHOTOS) {
+    alert("Up to " + MAX_PHOTOS + " photos per entry.");
+  }
+  files.slice(0, MAX_PHOTOS - pendingPhotos.length).forEach(function(file){
+    pendingPhotos.push({ file: file, previewUrl: URL.createObjectURL(file), existingFileId: null });
+  });
+  event.target.value = "";
+  renderPhotoPreviews();
+}
+
+function renderPhotoPreviews() {
+  const grid = document.getElementById("photoPreviewGrid");
+  grid.innerHTML = pendingPhotos.map(function(p, i){
+    return `
+      <div class="photo-preview ${i===coverIndex ? "cover" : ""}">
+        ${i===coverIndex ? '<span class="cover-badge">Cover</span>' : ""}
+        <img src="${p.previewUrl}">
+        <button type="button" class="remove-photo" onclick="removePhoto(${i})">×</button>
+        ${i!==coverIndex ? `<button type="button" class="set-cover" onclick="setCover(${i})">Set cover</button>` : ""}
+      </div>
+    `;
+  }).join("");
+  updateCoverFocalBox();
+}
+
+function updateCoverFocalBox() {
+  const box = document.getElementById("coverFocalBox");
+  const hint = document.getElementById("coverFocalHint");
+  const img = document.getElementById("coverFocalImg");
+  const cover = pendingPhotos[coverIndex];
+  if (!cover) {
+    box.style.display = "none";
+    hint.style.display = "none";
+    return;
+  }
+  box.style.display = "";
+  hint.style.display = "";
+  img.style.backgroundImage = "url(" + cover.previewUrl + ")";
+  img.style.backgroundPosition = pendingCoverFocalPosition;
+}
+
+function removePhoto(i) {
+  pendingPhotos.splice(i, 1);
+  if (coverIndex >= pendingPhotos.length) coverIndex = 0;
+  renderPhotoPreviews();
+}
+
+function setCover(i) {
+  coverIndex = i;
+  pendingCoverFocalPosition = "50% 50%";
+  renderPhotoPreviews();
+}
+
+function setupCoverFocalDrag() {
+  const img = document.getElementById("coverFocalImg");
+  let dragging = false;
+
+  function positionFromEvent(evt) {
+    const rect = img.getBoundingClientRect();
+    const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+    const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+    const x = Math.round(Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1) * 100);
+    const y = Math.round(Math.min(Math.max((clientY - rect.top) / rect.height, 0), 1) * 100);
+    return x + "% " + y + "%";
+  }
+
+  function startDrag(evt) {
+    dragging = true;
+    pendingCoverFocalPosition = positionFromEvent(evt);
+    img.style.backgroundPosition = pendingCoverFocalPosition;
+  }
+  function moveDrag(evt) {
+    if (!dragging) return;
+    pendingCoverFocalPosition = positionFromEvent(evt);
+    img.style.backgroundPosition = pendingCoverFocalPosition;
+  }
+  function endDrag() { dragging = false; }
+
+  img.addEventListener("mousedown", startDrag);
+  window.addEventListener("mousemove", moveDrag);
+  window.addEventListener("mouseup", endDrag);
+  img.addEventListener("touchstart", startDrag, { passive: true });
+  window.addEventListener("touchmove", moveDrag, { passive: true });
+  window.addEventListener("touchend", endDrag);
+}
+
+/* ======================= MODAL: ADD / EDIT ======================= */
+function openAddModal() {
+  editingId = null;
+  pendingPhotos = [];
+  coverIndex = 0;
+  pendingCoverFocalPosition = "50% 50%";
+  document.getElementById("modalTitle").textContent = "Add Travel Memory";
+  document.getElementById("tripForm").reset();
+  document.getElementById("dateType").value = "exact";
+  renderDateInputs();
+  renderPhotoPreviews();
+  document.getElementById("modal").classList.add("show");
+}
+
+function openEditModal(id) {
+  const t = trips.find(function(tr){ return tr.id === id; });
+  if (!t) return;
+  editingId = id;
+  pendingPhotos = (t.photoFileIds||[]).map(function(fid){
+    return { file: null, previewUrl: photoUrl(fid), existingFileId: fid };
+  });
+  coverIndex = Math.max(0, pendingPhotos.findIndex(function(p){ return p.existingFileId === t.coverFileId; }));
+  pendingCoverFocalPosition = t.coverFocalPosition || "50% 50%";
+
+  document.getElementById("modalTitle").textContent = "Edit Travel Memory";
+  document.getElementById("district").value = t.district;
+  document.getElementById("place").value = t.place || "";
+  document.getElementById("rating").value = t.rating || 5;
+  document.getElementById("tags").value = (t.tags||[]).join(", ");
+  document.getElementById("videoLink").value = t.videoFileId ? ("https://drive.google.com/file/d/" + t.videoFileId + "/view") : "";
+  document.getElementById("note").value = t.notes || "";
+  document.getElementById("dateType").value = t.dateType || "exact";
+  renderDateInputs(t.dateValue);
+  renderPhotoPreviews();
+  document.getElementById("modal").classList.add("show");
+}
+
+function closeModal() {
+  document.getElementById("modal").classList.remove("show");
+  document.getElementById("tripForm").reset();
+  pendingPhotos = [];
+  coverIndex = 0;
+}
+
+document.getElementById("tripForm").addEventListener("submit", async function(event){
+  event.preventDefault();
+  const saveButton = document.getElementById("saveButton");
+  saveButton.disabled = true;
+  saveButton.textContent = "Saving...";
+  const statusEl = document.getElementById("uploadStatus");
+
+  try {
+    // Upload any new (non-existing) photos first.
+    const finalFileIds = [];
+    for (let i = 0; i < pendingPhotos.length; i++) {
+      const p = pendingPhotos[i];
+      if (p.existingFileId) {
+        finalFileIds.push(p.existingFileId);
+        continue;
       }
+      statusEl.textContent = "Uploading photo " + (i+1) + " of " + pendingPhotos.length + "...";
+      const base64 = await fileToBase64(p.file);
+      const res = await callApi({
+        action: "uploadPhoto",
+        filename: p.file.name,
+        mimeType: p.file.type,
+        base64: base64
+      });
+      if (res.success) finalFileIds.push(res.fileId);
+    }
+    statusEl.textContent = "";
+
+    const coverFileId = finalFileIds[coverIndex] || finalFileIds[0] || "";
+
+    const tripPayload = {
+      id: editingId || undefined,
+      district: document.getElementById("district").value,
+      place: document.getElementById("place").value.trim(),
+      dateType: document.getElementById("dateType").value,
+      dateValue: getDateValueFromForm(),
+      rating: Number(document.getElementById("rating").value),
+      notes: document.getElementById("note").value.trim(),
+      tags: document.getElementById("tags").value.split(",").map(function(s){ return s.trim(); }).filter(Boolean),
+      photoFileIds: finalFileIds,
+      coverFileId: coverFileId,
+      coverFocalPosition: pendingCoverFocalPosition,
+      videoFileId: extractDriveFileId(document.getElementById("videoLink").value)
+    };
+
+    if (editingId) {
+      await callApi({ action: "updateTrip", trip: tripPayload });
+    } else {
+      await callApi({ action: "addTrip", trip: tripPayload });
     }
 
-    // Delete Record
-    async function deleteTrip(id) {
-      if (!confirm("Are you sure you want to delete this district entry?")) return;
+    closeModal();
+    await loadTrips();
+  } catch (err) {
+    alert("Something went wrong saving this memory: " + err.message);
+  } finally {
+    saveButton.disabled = false;
+    saveButton.textContent = "Save Memory";
+  }
+});
 
-      try {
-        const res = await callApi({ action: "deleteTrip", id: String(id) });
-        if (res.success) {
-          await loadTrips();
-        } else {
-          alert("Could not delete: " + res.error);
-        }
-      } catch (err) {
-        alert("Delete failed: " + err.message);
-      }
-    }
+function fileToBase64(file) {
+  return new Promise(function(resolve, reject){
+    const reader = new FileReader();
+    reader.onload = function(){ resolve(reader.result.split(",")[1]); };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
-    // Modal Control Helpers
-    function openAddModal() {
-      editingId = null; // Explicit reset for additions
-      document.getElementById("tripForm").reset();
-      document.getElementById("modalTitle").textContent = "Add New District";
-      toggleDateInputs();
-      document.getElementById("tripModal").classList.add("active");
-    }
+/* ======================= DELETE ======================= */
+async function deleteTrip(id) {
+  if (!confirm("Are you sure you want to delete this memory?")) return;
+  await callApi({ action: "deleteTrip", id: id });
+  await loadTrips();
+}
 
-    function openEditModal(id) {
-      const trip = trips.find(t => String(t.id) === String(id));
-      if (!trip) return;
+/* ======================= LIGHTBOX ======================= */
+function openLightbox(photoIds, startIndex) {
+  if (!photoIds || !photoIds.length) return;
+  lightboxPhotos = photoIds;
+  lightboxIndex = startIndex || 0;
+  updateLightbox();
+  document.getElementById("lightbox").classList.add("show");
+}
 
-      editingId = String(trip.id); // Explicit tracking for updates
-      document.getElementById("modalTitle").textContent = "Edit District Entry";
-      
-      document.getElementById("district").value = trip.district || "";
-      document.getElementById("place").value = trip.place || "";
-      document.getElementById("rating").value = trip.rating || 5;
-      document.getElementById("tags").value = (trip.tags || []).join(", ");
-      document.getElementById("note").value = trip.note || "";
+function updateLightbox() {
+  document.getElementById("lightboxImg").src = photoUrl(lightboxPhotos[lightboxIndex]);
+  document.getElementById("lightboxCount").textContent = (lightboxIndex+1) + " / " + lightboxPhotos.length;
+}
 
-      const dt = trip.dateType || "single";
-      document.getElementById("dateType").value = dt;
-      
-      if (dt === "range" && trip.dateValue) {
-        const parts = trip.dateValue.split(":");
-        document.getElementById("dateFrom").value = parts[0] || "";
-        document.getElementById("dateTo").value = parts[1] || "";
-      } else {
-        document.getElementById("dateVal").value = trip.dateValue || "";
-      }
+function lightboxNav(delta) {
+  lightboxIndex = (lightboxIndex + delta + lightboxPhotos.length) % lightboxPhotos.length;
+  updateLightbox();
+}
 
-      toggleDateInputs();
-      document.getElementById("tripModal").classList.add("active");
-    }
+function closeLightbox() {
+  document.getElementById("lightbox").classList.remove("show");
+}
 
-    function closeModal() {
-      editingId = null; // CRITICAL: Always reset on close
-      document.getElementById("tripModal").classList.remove("active");
-      document.getElementById("tripForm").reset();
-    }
+function openVideoLightbox(fileId) {
+  document.getElementById("videoLightboxFrame").src = videoEmbedUrl(fileId);
+  document.getElementById("videoLightbox").classList.add("show");
+}
 
-    function toggleDateInputs() {
-      const dt = document.getElementById("dateType").value;
-      if (dt === "range") {
-        document.getElementById("singleDateGroup").style.display = "none";
-        document.getElementById("rangeDateGroup").style.display = "block";
-      } else {
-        document.getElementById("singleDateGroup").style.display = "block";
-        document.getElementById("rangeDateGroup").style.display = "none";
-      }
-    }
+function closeVideoLightbox() {
+  document.getElementById("videoLightbox").classList.remove("show");
+  document.getElementById("videoLightboxFrame").src = ""; // stop playback
+}
 
-    // Formatting Utilities
-    function formatDateValue(t) {
-      if (!t.dateValue) return "No date";
-      if (t.dateType === "range") {
-        const parts = t.dateValue.split(":");
-        return `${parts[0] || ""} to ${parts[1] || ""}`;
-      }
-      return t.dateValue;
-    }
+document.getElementById("modal").addEventListener("click", function(event){
+  if (event.target.id === "modal") closeModal();
+});
+document.getElementById("lightbox").addEventListener("click", function(event){
+  if (event.target.id === "lightbox") closeLightbox();
+});
+document.getElementById("videoLightbox").addEventListener("click", function(event){
+  if (event.target.id === "videoLightbox") closeVideoLightbox();
+});
 
-    function escapeHtml(str) {
-      if (!str) return "";
-      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-    }
-  </script>
+/* ======================= START ======================= */
+renderDateInputs();
+setupCoverFocalDrag();
+(async function init() {
+  document.getElementById("maxPhotosLabel").textContent = MAX_PHOTOS;
+  await resolveEditMode();
+  if (isEditMode) {
+    document.getElementById("addDistrictBtn").style.display = "";
+    document.getElementById("randomMemoryBtn").style.display = "";
+    document.getElementById("exportJsonBtn").style.display = "";
+    document.getElementById("passportBtn").style.display = "";
+    document.getElementById("headerPhotoBtn").style.display = "";
+    setupHeaderFocalDrag();
+  }
+
+  document.getElementById("mainFooter").textContent =
+    "© " + new Date().getFullYear() + " Mohit · District Trails";
+
+  updateDatetimeCard();
+
+  loadHeaderPhoto();
+  loadTrips();
+})();
+</script>
+
 </body>
 </html>
