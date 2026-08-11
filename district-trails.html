@@ -495,7 +495,7 @@
           <div class="photo-picker" onclick="document.getElementById('photoInput').click()">
             📷 Click to select one or more photos (up to 50)
           </div>
-          <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotoSelect(event)">
+		  <input type="file" id="photoInput" accept="image/*,video/*" multiple style="display:none" onchange="handlePhotoSelect(event)">
           <div class="photo-preview-grid" id="photoPreviewGrid"></div>
           <div class="upload-status" id="uploadStatus"></div>
         </div>
@@ -517,7 +517,6 @@
 
 <div id="lightbox" class="lightbox">
   <button class="lightbox-close" onclick="closeLightbox()">×</button>
-  <img id="lightboxImg" src="">
   <div class="lightbox-controls">
     <button onclick="lightboxNav(-1)">‹</button>
     <span class="lightbox-count" id="lightboxCount"></span>
@@ -1208,9 +1207,36 @@ function openLightbox(photoIds, startIndex) {
   document.getElementById("lightbox").classList.add("show");
 }
 
+function isVideoFile(url) {
+  return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.startsWith("data:video");
+}
+
 function updateLightbox() {
-  document.getElementById("lightboxImg").src = photoUrl(lightboxPhotos[lightboxIndex]);
-  document.getElementById("lightboxCount").textContent = `${lightboxIndex+1} / ${lightboxPhotos.length}`;
+  const file = lightboxPhotos[lightboxIndex];
+  const src = typeof file === "string" ? photoUrl(file) : file.previewUrl;
+  const container = document.getElementById("lightbox");
+  
+  // Clean up any previously created image or video player
+  const oldMedia = container.querySelector("img, video, iframe");
+  if (oldMedia) oldMedia.remove();
+
+  if (isVideoFile(src)) {
+    const video = document.createElement("video");
+    video.src = src;
+    video.controls = true;
+    video.autoplay = true;
+    video.style.maxWidth = "90vw";
+    video.style.maxHeight = "78vh";
+    container.insertBefore(video, container.querySelector(".lightbox-controls"));
+  } else {
+    const img = document.createElement("img");
+    img.src = src;
+    img.style.maxWidth = "90vw";
+    img.style.maxHeight = "78vh";
+    container.insertBefore(img, container.querySelector(".lightbox-controls"));
+  }
+
+  document.getElementById("lightboxCount").textContent = `${lightboxIndex + 1} / ${lightboxPhotos.length}`;
 }
 
 function lightboxNav(delta) {
