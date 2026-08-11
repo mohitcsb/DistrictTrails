@@ -242,8 +242,8 @@
 
   @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
 
-  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
-  .reveal.in-view { opacity: 1; transform: translateY(0); }
+  /* Fixed reveal class so stat cards display immediately */
+  .reveal { opacity: 1 !important; transform: none !important; }
 
   .card-image-wrap { position: relative; overflow: hidden; }
   .card-image { width: 100%; height: 220px; object-fit: cover; background: #ccfbf1; display: block; cursor: pointer; }
