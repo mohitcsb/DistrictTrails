@@ -26,7 +26,6 @@
     background: #f8fafc;
   }
 
-  /* Updated Header Styling for Drag Support */
   header {
     color: white;
     padding: 50px 20px 80px;
@@ -259,7 +258,7 @@
   .location { color: var(--green); font-weight: bold; margin-bottom: 10px; font-size: .95rem; }
   .date-line { color: var(--gray); font-size: .85rem; }
   .tags-line { margin: 8px 0; display: flex; gap: 6px; flex-wrap: wrap; }
-  .tag-chip { background: var(--light); color: var(--dark-green); font-size: .72rem; padding: 3px 9px; border-radius: 20px; }
+  .tag-chip { background: var(--light); color: var(--dark-green); font-size: .72rem; padding: 3px 9px; border-radius: 20px; cursor: pointer; }
   .note { color: #526579; line-height: 1.55; margin: 10px 0; flex: 1; font-size: .92rem; }
 
   .card-bottom { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 8px; }
@@ -287,7 +286,7 @@
     border: 1px solid var(--border); background: #f1f5f9; color: var(--gray); cursor: default;
   }
   .district-tile.visited { background: var(--green); color: white; border-color: var(--dark-green); font-weight: bold; }
-  .district-tile.wishlist-marked { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+  .district-tile.wishlist-marked { background: #fef3c7; color: #92400e; border-color: #fde68a; font-weight: bold; }
 
   .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
   .stats-card { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
@@ -301,9 +300,11 @@
   .wishlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
   .wishlist-tile {
     padding: 14px 10px; text-align: center; border-radius: 10px; font-size: .85rem;
-    border: 1px solid var(--border); background: white; cursor: pointer;
+    border: 1px solid var(--border); background: white; cursor: pointer; user-select: none;
+    transition: all .15s ease;
   }
-  .wishlist-tile.marked { background: #fef3c7; border-color: #fde68a; font-weight: bold; }
+  .wishlist-tile.marked { background: #fef3c7; border-color: #fde68a; font-weight: bold; color: #92400e; }
+  .wishlist-tile.visited-tile { background: #e2e8f0; color: #94a3b8; border-color: #cbd5e1; cursor: not-allowed; opacity: .7; }
 
   .modal { display: none; position: fixed; inset: 0; z-index: 20; padding: 20px; background: rgba(0,0,0,.65); align-items: center; justify-content: center; overflow-y: auto; }
   .modal.show { display: flex; }
@@ -325,7 +326,7 @@
   .photo-picker { border: 2px dashed var(--border); border-radius: 10px; padding: 16px; text-align: center; cursor: pointer; }
   .photo-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 12px; }
   .photo-preview { position: relative; border-radius: 8px; overflow: hidden; border: 2px solid transparent; }
-  .photo-preview img { width: 100%; height: 80px; object-fit: cover; display: block; }
+  .photo-preview img, .photo-preview video { width: 100%; height: 80px; object-fit: cover; display: block; }
   .photo-preview.cover { border-color: var(--green); }
   .photo-preview .cover-badge { position: absolute; top: 3px; left: 3px; background: var(--green); color: white; font-size: .6rem; padding: 2px 5px; border-radius: 4px; }
   .photo-preview .remove-photo { position: absolute; top: 3px; right: 3px; background: rgba(0,0,0,.6); color: white; border: 0; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: .7rem; }
@@ -336,7 +337,7 @@
 
   .lightbox { display: none; position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,.9); align-items: center; justify-content: center; flex-direction: column; }
   .lightbox.show { display: flex; }
-  .lightbox img { max-width: 90vw; max-height: 78vh; border-radius: 8px; }
+  .lightbox img, .lightbox video { max-width: 90vw; max-height: 78vh; border-radius: 8px; }
   .lightbox-controls { display: flex; gap: 20px; align-items: center; margin-top: 16px; }
   .lightbox-controls button { background: white; border: 0; border-radius: 50%; width: 42px; height: 42px; cursor: pointer; font-size: 1.1rem; }
   .lightbox-close { position: absolute; top: 20px; right: 24px; background: white; border: 0; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; font-size: 1.2rem; }
@@ -346,6 +347,7 @@
 
   @media (max-width: 900px) {
     .cards { grid-template-columns: repeat(2, 1fr); }
+    .stats-grid { grid-template-columns: 1fr; }
   }
   @media (max-width: 650px) {
     .cards, .form-grid { grid-template-columns: 1fr; }
@@ -400,9 +402,9 @@
     <div class="section-title">
       <div><h2>My Travel Journal</h2><p class="hint">Every trip, as I remember it.</p></div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="button button-ghost" id="randomMemoryBtn" onclick="showRandomMemory()" style="display:none;">🎲 Random Memory</button>
-        <button class="button button-ghost" id="exportJsonBtn" onclick="exportJSON()" style="display:none;">⬇ Export JSON</button>
-        <button class="button button-ghost" id="passportBtn" onclick="window.print()" style="display:none;">🖨 Passport</button>
+        <button class="button button-ghost" id="randomMemoryBtn" onclick="showRandomMemory()">🎲 Random Memory</button>
+        <button class="button button-ghost" id="exportJsonBtn" onclick="exportJSON()">⬇ Export JSON</button>
+        <button class="button button-ghost" id="passportBtn" onclick="window.print()">🖨 Passport</button>
         <button class="button button-primary" id="addDistrictBtn" onclick="openAddModal()" style="display:none;">+ Add District</button>
       </div>
     </div>
@@ -417,12 +419,12 @@
 
   <section class="section" id="view-timeline" style="display:none;">
     <div class="section-title"><h2>Timeline</h2></div>
-    <div id="timelineList"></div>
+    <div id="timelineList" class="timeline"></div>
   </section>
 
   <section class="section" id="view-map" style="display:none;">
     <div class="section-title"><h2>District Map</h2></div>
-    <p class="hint">Grouped by division — a clear layout of districts.</p>
+    <p class="hint">Grouped by division — green indicates visited districts, yellow shows wishlist choices.</p>
     <div id="mapGrid"></div>
   </section>
 
@@ -447,7 +449,7 @@
       <button class="close" onclick="closeModal()">×</button>
     </div>
 
-    <form id="tripForm">
+    <form id="tripForm" onsubmit="handleFormSubmit(event)">
       <div class="form-grid">
 
         <div class="form-group">
@@ -491,11 +493,11 @@
         </div>
 
         <div class="form-group full">
-          <label>Photos</label>
+          <label>Photos / Videos</label>
           <div class="photo-picker" onclick="document.getElementById('photoInput').click()">
-            📷 Click to select one or more photos (up to 50)
+            📷 Click to select one or more photos/videos (up to 50)
           </div>
-		  <input type="file" id="photoInput" accept="image/*,video/*" multiple style="display:none" onchange="handlePhotoSelect(event)">
+          <input type="file" id="photoInput" accept="image/*,video/*" multiple style="display:none" onchange="handlePhotoSelect(event)">
           <div class="photo-preview-grid" id="photoPreviewGrid"></div>
           <div class="upload-status" id="uploadStatus"></div>
         </div>
@@ -556,6 +558,9 @@ async function resolveEditMode() {
   if (hash === ADMIN_KEY_HASH) {
     isEditMode = true;
     adminKeyPlaintext = urlKey;
+    document.getElementById("addDistrictBtn").style.display = "";
+    document.getElementById("headerPhotoBtn").style.display = "";
+    setupHeaderFocalDrag();
   }
 }
 
@@ -584,17 +589,24 @@ let wishlist = JSON.parse(localStorage.getItem("districtWishlist") || "[]");
 let headerPhotoId = "";
 let headerFocalPosition = "50% 50%";
 
-/* ======================= INIT & REFRESH ======================= */
-document.getElementById("district").innerHTML = ALL_DISTRICTS
-  .map(d => `<option value="${d}">${d}</option>`).join("");
+/* ======================= INITIALIZATION ======================= */
+document.addEventListener("DOMContentLoaded", async () => {
+  document.getElementById("district").innerHTML = ALL_DISTRICTS
+    .map(d => `<option value="${d}">${d}</option>`).join("");
 
-document.querySelectorAll(".tab").forEach(tab => {
-  tab.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    tab.classList.add("active");
-    currentView = tab.dataset.view;
-    switchView();
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      currentView = tab.dataset.view;
+      switchView();
+    });
   });
+
+  updateTimePill();
+  await resolveEditMode();
+  await loadHeaderPhoto();
+  await loadTrips();
 });
 
 function switchView() {
@@ -640,9 +652,11 @@ async function loadTrips() {
   }
   populateTagFilter();
   checkOnThisDay();
+  updateStatsBar();
   switchView();
 }
 
+/* ======================= HEADER PHOTO & FOCAL ======================= */
 async function loadHeaderPhoto() {
   try {
     const res = await fetch(APPS_SCRIPT_URL + "?action=getSettings");
@@ -664,7 +678,6 @@ function applyHeaderPhoto() {
   }
 }
 
-/* Updated Full Click-and-Drag Feature */
 function setupHeaderFocalDrag() {
   const header = document.getElementById("mainHeader");
   header.classList.add("has-focal-control");
@@ -813,279 +826,207 @@ function updateStatsBar() {
     document.getElementById("latestDate").textContent = "—";
   }
 
-  const pct = Math.round((uniqueDistricts.size / ALL_DISTRICTS.length) * 100);
+  const pct = Math.round((uniqueDistricts.size / 64) * 100);
   document.getElementById("progressFill").style.width = pct + "%";
-  document.getElementById("progressLabel").innerHTML =
-    `<strong>${uniqueDistricts.size}</strong> of <strong>${ALL_DISTRICTS.length}</strong> districts visited`;
+  document.getElementById("progressLabel").innerHTML = `<strong>${uniqueDistricts.size}</strong> of 64 districts visited (${pct}%)`;
 }
 
 function checkOnThisDay() {
   const today = new Date();
-  const mm = String(today.getMonth()+1).padStart(2,"0");
-  const dd = String(today.getDate()).padStart(2,"0");
+  const m = today.getMonth() + 1;
+  const d = today.getDate();
+  
   const matches = trips.filter(t => {
-    if (t.dateType !== "exact" && t.dateType !== "range") return false;
-    const first = (t.dateValue||"").split(":")[0];
-    return first.slice(5,7) === mm && first.slice(8,10) === dd;
+    if (t.dateType === "exact" && t.dateValue) {
+      const [, month, day] = t.dateValue.split("-").map(Number);
+      return month === m && day === d;
+    }
+    return false;
   });
+
   const banner = document.getElementById("onThisDayBanner");
   if (matches.length) {
-    const m = matches[0];
-    const years = new Date().getFullYear() - Number((m.dateValue||"").slice(0,4));
-    banner.style.display = "block";
-    banner.textContent = `📅 On this day, ${years} year(s) ago, you were in ${m.district}${m.place ? ` (${m.place})` : ""}.`;
+    const names = matches.map(m => `${m.district} (${m.dateValue.split("-")[0]})`).join(", ");
+    banner.innerHTML = `🎉 <strong>On this day:</strong> You visited ${names}!`;
+    banner.style.display = "";
   } else {
     banner.style.display = "none";
   }
 }
 
-/* ======================= CARDS VIEW ======================= */
+/* ======================= RENDER CARDS ======================= */
 function renderCards() {
-  updateStatsBar();
-  const searchText = document.getElementById("searchBox").value.toLowerCase();
-  const tagFilterVal = document.getElementById("tagFilter").value;
+  const q = document.getElementById("searchBox").value.toLowerCase();
+  const selectedTag = document.getElementById("tagFilter").value;
 
   const filtered = trips.filter(t => {
-    const matchesSearch =
-      t.district.toLowerCase().includes(searchText) ||
-      (t.place||"").toLowerCase().includes(searchText) ||
-      (t.notes||"").toLowerCase().includes(searchText);
-    const matchesTag = !tagFilterVal || (t.tags||[]).includes(tagFilterVal);
-    return matchesSearch && matchesTag;
+    const textMatch = !q || [t.district, t.place, t.note, ...(t.tags||[])].some(s => (s||"").toLowerCase().includes(q));
+    const tagMatch = !selectedTag || (t.tags||[]).includes(selectedTag);
+    return textMatch && tagMatch;
   });
+
+  filtered.sort((a,b) => sortKeyForDate(b).localeCompare(sortKeyForDate(a)));
 
   const container = document.getElementById("tripCards");
   if (!filtered.length) {
-    container.innerHTML = '<div class="empty">No travel memory found.</div>';
+    container.innerHTML = '<div class="empty">No travel memories found.</div>';
     return;
   }
 
-  container.innerHTML = filtered.map((t, i) => {
+  container.innerHTML = filtered.map(t => {
     const photos = t.photoFileIds || [];
-    const coverId = t.coverFileId || photos[0];
-    const imgSrc = coverId ? photoUrl(coverId) : "";
-    const extra = photos.length > 1 ? `<span class="photo-count-badge">+${photos.length-1}</span>` : "";
-    const delay = Math.min(i, 10) * 60;
+    const coverId = photos[t.coverPhotoIndex || 0] || photos[0];
+    const stars = "★".repeat(t.rating || 5) + "☆".repeat(5 - (t.rating || 5));
+
     return `
-      <article class="card" style="animation-delay:${delay}ms;">
-        <div class="card-image-wrap">
-          ${imgSrc
-            ? `<img class="card-image" src="${imgSrc}" alt="${t.district}" onclick='openLightbox(${JSON.stringify(photos)}, 0)'>`
-            : `<div class="card-image" style="display:flex;align-items:center;justify-content:center;color:#94a3b8;">No photo</div>`}
-          ${extra}
-        </div>
+      <div class="card">
+        ${coverId ? `
+          <div class="card-image-wrap" onclick="openLightboxForTrip('${t.id}')">
+            <img class="card-image" src="${photoUrl(coverId)}" alt="${t.district}">
+            ${photos.length > 1 ? `<span class="photo-count-badge">📷 ${photos.length}</span>` : ""}
+          </div>
+        ` : ""}
         <div class="card-content">
-          <h3>${t.place || "Beautiful Place"}</h3>
-          <div class="location">📍 ${t.district}</div>
-          <div class="date-line">Last visited: ${formatDateValue(t)}</div>
-          <div class="tags-line">${(t.tags||[]).map(tag => `<span class="tag-chip">${tag}</span>`).join("")}</div>
-          <p class="note">${t.notes || "A wonderful travel memory."}</p>
+          <h3>${t.district}</h3>
+          ${t.place ? `<div class="location">📍 ${t.place}</div>` : ""}
+          <div class="date-line">📅 ${formatDateValue(t)}</div>
+          
+          ${(t.tags||[]).length ? `
+            <div class="tags-line">
+              ${t.tags.map(tag => `<span class="tag-chip" onclick="filterByTag('${tag}')">#${tag}</span>`).join("")}
+            </div>
+          ` : ""}
+
+          ${t.note ? `<div class="note">${t.note}</div>` : ""}
+
           <div class="card-bottom">
-            <span class="stars">${"★".repeat(t.rating)}${"☆".repeat(5-t.rating)}</span>
+            <div class="stars">${stars}</div>
             ${isEditMode ? `
-            <div class="card-actions">
-              <button class="icon-button" onclick="openEditModal('${t.id}')">Edit</button>
-              <button class="icon-button danger" onclick="deleteTrip('${t.id}')">Delete</button>
-            </div>` : ""}
+              <div class="card-actions">
+                <button class="icon-button" onclick="openEditModal('${t.id}')">✏️ Edit</button>
+                <button class="icon-button danger" onclick="deleteTrip('${t.id}')">🗑 Delete</button>
+              </div>
+            ` : ""}
           </div>
         </div>
-      </article>
+      </div>
     `;
   }).join("");
 }
 
-/* ======================= TIMELINE VIEW ======================= */
-function renderTimeline() {
-  updateStatsBar();
-  const sorted = [...trips].sort((a,b) => sortKeyForDate(b).localeCompare(sortKeyForDate(a)));
-  const el = document.getElementById("timelineList");
-  if (!sorted.length) { el.innerHTML = '<div class="empty">No memories yet.</div>'; return; }
-  el.innerHTML = '<div class="timeline">' + sorted.map(t => `
-    <div class="timeline-item reveal">
-      <div class="timeline-date">${formatDateValue(t)}</div>
-      <strong>${t.district}</strong>${t.place ? " — " + t.place : ""}
-      <p class="note" style="margin:8px 0 0;">${t.notes || ""}</p>
-    </div>
-  `).join("") + '</div>';
+function filterByTag(tag) {
+  document.getElementById("tagFilter").value = tag;
+  renderCards();
 }
 
-/* ======================= MAP VIEW ======================= */
+/* ======================= RENDER TIMELINE ======================= */
+function renderTimeline() {
+  const sorted = [...trips].sort((a,b) => sortKeyForDate(b).localeCompare(sortKeyForDate(a)));
+  const container = document.getElementById("timelineList");
+
+  if (!sorted.length) {
+    container.innerHTML = '<div class="empty">No events on timeline.</div>';
+    return;
+  }
+
+  container.innerHTML = sorted.map(t => `
+    <div class="timeline-item">
+      <div class="timeline-date">${formatDateValue(t)}</div>
+      <strong style="font-size:1.1rem; color:var(--dark);">${t.district}</strong> ${t.place ? `— ${t.place}` : ""}
+      ${t.note ? `<p style="margin:8px 0 0; color:var(--gray); font-size:.9rem;">${t.note}</p>` : ""}
+    </div>
+  `).join("");
+}
+
+/* ======================= RENDER MAP ======================= */
 function renderMap() {
-  updateStatsBar();
-  const visited = new Set(trips.map(t => t.district));
-  const el = document.getElementById("mapGrid");
-  el.innerHTML = Object.keys(DIVISIONS).map(div => `
-    <div class="division-block reveal">
-      <div class="division-title">${div} Division</div>
+  const visitedSet = new Set(trips.map(t => t.district.toLowerCase()));
+  const container = document.getElementById("mapGrid");
+
+  container.innerHTML = Object.entries(DIVISIONS).map(([division, dists]) => `
+    <div class="division-block">
+      <div class="division-title">${division} Division</div>
       <div class="district-grid">
-        ${DIVISIONS[div].map(d => {
-          const cls = visited.has(d) ? "visited" : (wishlist.includes(d) ? "wishlist-marked" : "");
-          return `<div class="district-tile ${cls}">${d}</div>`;
+        ${dists.map(d => {
+          const isVisited = visitedSet.has(d.toLowerCase());
+          const isWish = wishlist.includes(d);
+          let cls = "district-tile";
+          if (isVisited) cls += " visited";
+          else if (isWish) cls += " wishlist-marked";
+
+          return `<div class="${cls}">${d}</div>`;
         }).join("")}
       </div>
     </div>
   `).join("");
 }
 
-/* ======================= STATS VIEW ======================= */
+/* ======================= RENDER STATS ======================= */
 function renderStats() {
-  updateStatsBar();
-  const byDistrict = {};
-  trips.forEach(t => { byDistrict[t.district] = (byDistrict[t.district]||0) + 1; });
-  const mostVisited = Object.entries(byDistrict).sort((a,b) => b[1]-a[1]).slice(0,6);
+  const container = document.getElementById("statsGrid");
+  const visitedSet = new Set(trips.map(t => t.district.toLowerCase()));
 
-  const byYear = {};
-  trips.forEach(t => {
-    const y = sortKeyForDate(t).slice(0,4);
-    if (y === "0000") return;
-    byYear[y] = (byYear[y]||0) + 1;
+  const divStats = Object.entries(DIVISIONS).map(([div, dists]) => {
+    const visitedInDiv = dists.filter(d => visitedSet.has(d.toLowerCase())).length;
+    return { div, visited: visitedInDiv, total: dists.length, pct: Math.round((visitedInDiv/dists.length)*100) };
   });
-  const years = Object.entries(byYear).sort((a,b) => a[0].localeCompare(b[0]));
 
-  const ratingAvgByDistrict = {};
-  Object.keys(byDistrict).forEach(d => {
-    const rs = trips.filter(t => t.district===d).map(t => t.rating);
-    ratingAvgByDistrict[d] = rs.reduce((a,b) => a+b, 0) / rs.length;
-  });
-  const topRated = Object.entries(ratingAvgByDistrict).sort((a,b) => b[1]-a[1]).slice(0,6);
-
-  const maxVisits = Math.max(1, ...mostVisited.map(e => e[1]));
-  const maxYear = Math.max(1, ...years.map(e => e[1]));
-
-  document.getElementById("statsGrid").innerHTML = `
-    <div class="stats-card reveal">
-      <h4>Most-visited districts</h4>
-      ${mostVisited.length ? mostVisited.map(e => `
-        <div class="bar-row"><span class="bar-label">${e[0]}</span><div class="bar-track"><div class="bar-fill" style="width:${(e[1]/maxVisits*100)}%"></div></div><span class="bar-value">${e[1]}</span></div>
-      `).join("") : '<p class="hint">No data yet.</p>'}
+  container.innerHTML = `
+    <div class="stats-card">
+      <h4>Progress by Division</h4>
+      ${divStats.map(s => `
+        <div class="bar-row">
+          <span class="bar-label">${s.div}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${s.pct}%"></div></div>
+          <span class="bar-value">${s.visited}/${s.total}</span>
+        </div>
+      `).join("")}
     </div>
-    <div class="stats-card reveal">
-      <h4>Highest-rated districts</h4>
-      ${topRated.length ? topRated.map(e => `
-        <div class="bar-row"><span class="bar-label">${e[0]}</span><div class="bar-track"><div class="bar-fill" style="width:${(e[1]/5*100)}%"></div></div><span class="bar-value">${e[1].toFixed(1)}</span></div>
-      `).join("") : '<p class="hint">No data yet.</p>'}
-    </div>
-    <div class="stats-card reveal" style="grid-column:1/-1;">
-      <h4>Visits per year</h4>
-      ${years.length ? years.map(e => `
-        <div class="bar-row"><span class="bar-label">${e[0]}</span><div class="bar-track"><div class="bar-fill" style="width:${(e[1]/maxYear*100)}%"></div></div><span class="bar-value">${e[1]}</span></div>
-      `).join("") : '<p class="hint">No dated visits yet.</p>'}
+    <div class="stats-card">
+      <h4>Summary</h4>
+      <p><strong>Total Districts Visited:</strong> ${visitedSet.size} / 64</p>
+      <p><strong>Total Travels Logged:</strong> ${trips.length}</p>
+      <p><strong>Wishlist Items:</strong> ${wishlist.length}</p>
     </div>
   `;
 }
 
-/* ======================= WISHLIST VIEW ======================= */
+/* ======================= WISHLIST SYSTEM (FIXED BUG) ======================= */
 function renderWishlist() {
-  const visited = new Set(trips.map(t => t.district));
-  const remaining = ALL_DISTRICTS.filter(d => !visited.has(d));
-  const el = document.getElementById("wishlistGrid");
-  if (!remaining.length) { el.innerHTML = '<div class="empty">You have visited every district! 🎉</div>'; return; }
-  el.innerHTML = remaining.map(d => {
-    const marked = wishlist.includes(d);
-    return `<div class="wishlist-tile ${marked ? "marked" : ""}" onclick="toggleWishlist('${d}')">${marked ? "★ " : ""}${d}</div>`;
+  const visitedSet = new Set(trips.map(t => t.district.toLowerCase()));
+  const container = document.getElementById("wishlistGrid");
+
+  container.innerHTML = ALL_DISTRICTS.map(d => {
+    const isVisited = visitedSet.has(d.toLowerCase());
+    const isMarked = wishlist.includes(d);
+
+    if (isVisited) {
+      return `<div class="wishlist-tile visited-tile" title="Already visited">${d} ✓</div>`;
+    }
+
+    return `
+      <div class="wishlist-tile ${isMarked ? "marked" : ""}" onclick="toggleWishlist('${d}')">
+        ${d} ${isMarked ? "⭐" : ""}
+      </div>
+    `;
   }).join("");
 }
 
 function toggleWishlist(district) {
-  const idx = wishlist.indexOf(district);
-  if (idx === -1) wishlist.push(district); else wishlist.splice(idx,1);
-  localStorage.setItem("districtWishlist", JSON.stringify(wishlist));
-  renderWishlist();
-}
-
-/* ======================= RANDOM MEMORY ======================= */
-function showRandomMemory() {
-  if (!trips.length) { alert("No memories saved yet."); return; }
-  const t = trips[Math.floor(Math.random() * trips.length)];
-  const photos = t.photoFileIds || [];
-  alert(`🎲 ${t.district}${t.place ? " — " + t.place : ""}\n${formatDateValue(t)}\n\n${t.notes || ""}`);
-  if (photos.length) openLightbox(photos, 0);
-}
-
-/* ======================= EXPORT ======================= */
-function exportJSON() {
-  const blob = new Blob([JSON.stringify(trips, null, 2)], {type: "application/json"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "district-trails-backup.json";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-/* ======================= DATE INPUTS ======================= */
-function renderDateInputs(prefill) {
-  const type = document.getElementById("dateType").value;
-  const wrap = document.getElementById("dateInputsWrap");
-  const v = prefill || "";
-  if (type === "exact") {
-    wrap.innerHTML = `<label for="dateExact">Date *</label><input type="date" id="dateExact" required value="${v}">`;
-  } else if (type === "monthYear") {
-    wrap.innerHTML = `<label for="dateMonthYear">Month & Year *</label><input type="month" id="dateMonthYear" required value="${v}">`;
-  } else if (type === "year") {
-    wrap.innerHTML = `<label for="dateYear">Year *</label><input type="number" id="dateYear" required min="1900" max="2100" placeholder="2016" value="${v}">`;
-  } else if (type === "approxYear") {
-    wrap.innerHTML = `<label for="dateApproxYear">Approximate Year *</label><input type="number" id="dateApproxYear" required min="1900" max="2100" placeholder="2016" value="${v}">`;
-  } else if (type === "range") {
-    const parts = v.split(":");
-    wrap.innerHTML = `
-      <label>Date Range *</label>
-      <div style="display:flex; gap:8px;">
-        <input type="date" id="dateRangeFrom" required value="${parts[0]||""}">
-        <input type="date" id="dateRangeTo" required value="${parts[1]||""}">
-      </div>`;
+  if (wishlist.includes(district)) {
+    wishlist = wishlist.filter(item => item !== district);
   } else {
-    wrap.innerHTML = '<p class="hint">No date will be recorded for this memory.</p>';
+    wishlist.push(district);
   }
+  localStorage.setItem("districtWishlist", JSON.stringify(wishlist));
+  
+  // Instantly reflect across UI
+  renderWishlist();
+  if (currentView === "map") renderMap();
+  if (currentView === "stats") renderStats();
 }
 
-function getDateValueFromForm() {
-  const type = document.getElementById("dateType").value;
-  if (type === "exact") return document.getElementById("dateExact").value;
-  if (type === "monthYear") return document.getElementById("dateMonthYear").value;
-  if (type === "year") return document.getElementById("dateYear").value;
-  if (type === "approxYear") return document.getElementById("dateApproxYear").value;
-  if (type === "range") return document.getElementById("dateRangeFrom").value + ":" + document.getElementById("dateRangeTo").value;
-  return "";
-}
-
-/* ======================= PHOTO PICKER ======================= */
-function handlePhotoSelect(event) {
-  const files = Array.from(event.target.files);
-  if (pendingPhotos.length + files.length > MAX_PHOTOS) {
-    alert("Up to " + MAX_PHOTOS + " photos per entry.");
-  }
-  files.slice(0, MAX_PHOTOS - pendingPhotos.length).forEach(file => {
-    pendingPhotos.push({ file: file, previewUrl: URL.createObjectURL(file), existingFileId: null });
-  });
-  event.target.value = "";
-  renderPhotoPreviews();
-}
-
-function renderPhotoPreviews() {
-  const grid = document.getElementById("photoPreviewGrid");
-  grid.innerHTML = pendingPhotos.map((p, i) => `
-    <div class="photo-preview ${i===coverIndex ? "cover" : ""}">
-      ${i===coverIndex ? '<span class="cover-badge">Cover</span>' : ""}
-      <img src="${p.previewUrl}">
-      <button type="button" class="remove-photo" onclick="removePhoto(${i})">×</button>
-      ${i!==coverIndex ? `<button type="button" class="set-cover" onclick="setCover(${i})">Set cover</button>` : ""}
-    </div>
-  `).join("");
-}
-
-function removePhoto(i) {
-  pendingPhotos.splice(i, 1);
-  if (coverIndex >= pendingPhotos.length) coverIndex = 0;
-  renderPhotoPreviews();
-}
-
-function setCover(i) {
-  coverIndex = i;
-  renderPhotoPreviews();
-}
-
-/* ======================= MODAL: ADD / EDIT ======================= */
+/* ======================= MODAL & FORM ======================= */
 function openAddModal() {
   editingId = null;
   pendingPhotos = [];
@@ -1094,121 +1035,214 @@ function openAddModal() {
   document.getElementById("tripForm").reset();
   document.getElementById("dateType").value = "exact";
   renderDateInputs();
-  renderPhotoPreviews();
+  renderPhotoPreview();
   document.getElementById("modal").classList.add("show");
 }
 
 function openEditModal(id) {
-  const t = trips.find(tr => tr.id === id);
+  const t = trips.find(x => x.id === id);
   if (!t) return;
   editingId = id;
-  pendingPhotos = (t.photoFileIds||[]).map(fid => ({ file: null, previewUrl: photoUrl(fid), existingFileId: fid }));
-  coverIndex = Math.max(0, pendingPhotos.findIndex(p => p.existingFileId === t.coverFileId));
-
   document.getElementById("modalTitle").textContent = "Edit Travel Memory";
   document.getElementById("district").value = t.district;
   document.getElementById("place").value = t.place || "";
-  document.getElementById("rating").value = t.rating || 5;
-  document.getElementById("tags").value = (t.tags||[]).join(", ");
-  document.getElementById("note").value = t.notes || "";
   document.getElementById("dateType").value = t.dateType || "exact";
-  renderDateInputs(t.dateValue);
-  renderPhotoPreviews();
+  renderDateInputs();
+
+  if (t.dateType === "range") {
+    const [from, to] = (t.dateValue || "").split(":");
+    if (document.getElementById("dateFrom")) document.getElementById("dateFrom").value = from || "";
+    if (document.getElementById("dateTo")) document.getElementById("dateTo").value = to || "";
+  } else {
+    if (document.getElementById("dateVal")) document.getElementById("dateVal").value = t.dateValue || "";
+  }
+
+  document.getElementById("rating").value = t.rating || 5;
+  document.getElementById("tags").value = (t.tags || []).join(", ");
+  document.getElementById("note").value = t.note || "";
+
+  pendingPhotos = (t.photoFileIds || []).map(fid => ({ fileId: fid }));
+  coverIndex = t.coverPhotoIndex || 0;
+  renderPhotoPreview();
+
   document.getElementById("modal").classList.add("show");
 }
 
 function closeModal() {
   document.getElementById("modal").classList.remove("show");
-  document.getElementById("tripForm").reset();
-  pendingPhotos = [];
-  coverIndex = 0;
 }
 
-document.getElementById("tripForm").addEventListener("submit", async function(event){
-  event.preventDefault();
-  const saveButton = document.getElementById("saveButton");
-  saveButton.disabled = true;
-  saveButton.textContent = "Saving...";
+function renderDateInputs() {
+  const dt = document.getElementById("dateType").value;
+  const wrap = document.getElementById("dateInputsWrap");
+
+  if (dt === "exact") {
+    wrap.innerHTML = `<label>Date *</label><input type="date" id="dateVal" required>`;
+  } else if (dt === "monthYear") {
+    wrap.innerHTML = `<label>Month and Year *</label><input type="month" id="dateVal" required>`;
+  } else if (dt === "year" || dt === "approxYear") {
+    wrap.innerHTML = `<label>Year *</label><input type="number" id="dateVal" placeholder="e.g. 2024" min="1900" max="2099" required>`;
+  } else if (dt === "range") {
+    wrap.innerHTML = `
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div><label>From Date *</label><input type="date" id="dateFrom" required></div>
+        <div><label>To Date</label><input type="date" id="dateTo"></div>
+      </div>
+    `;
+  } else {
+    wrap.innerHTML = `<p class="hint">No specific date value needed.</p>`;
+  }
+}
+
+/* ======================= PHOTO & VIDEO HANDLING ======================= */
+function isVideoFile(url) {
+  return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.startsWith("data:video");
+}
+
+function handlePhotoSelect(e) {
+  const files = Array.from(e.target.files);
+  if (pendingPhotos.length + files.length > MAX_PHOTOS) {
+    alert(`Maximum limit is ${MAX_PHOTOS} media files.`);
+    return;
+  }
+
+  files.forEach(f => {
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      pendingPhotos.push({
+        file: f,
+        previewUrl: evt.target.result,
+        base64: evt.target.result.split(',')[1],
+        mimeType: f.type,
+        filename: f.name
+      });
+      renderPhotoPreview();
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+function renderPhotoPreview() {
+  const grid = document.getElementById("photoPreviewGrid");
+  grid.innerHTML = pendingPhotos.map((p, idx) => {
+    const src = p.fileId ? photoUrl(p.fileId) : p.previewUrl;
+    const isVideo = p.mimeType ? p.mimeType.startsWith("video") : isVideoFile(src);
+
+    return `
+      <div class="photo-preview ${idx === coverIndex ? "cover" : ""}">
+        ${idx === coverIndex ? '<span class="cover-badge">Cover</span>' : ""}
+        <button type="button" class="remove-photo" onclick="removePhoto(${idx})">×</button>
+        ${isVideo ? `<video src="${src}"></video>` : `<img src="${src}">`}
+        ${idx !== coverIndex ? `<button type="button" class="set-cover" onclick="setCover(${idx})">Cover</button>` : ""}
+      </div>
+    `;
+  }).join("");
+}
+
+function setCover(idx) {
+  coverIndex = idx;
+  renderPhotoPreview();
+}
+
+function removePhoto(idx) {
+  pendingPhotos.splice(idx, 1);
+  if (coverIndex >= pendingPhotos.length) coverIndex = Math.max(0, pendingPhotos.length - 1);
+  renderPhotoPreview();
+}
+
+/* ======================= SUBMIT / SAVE ======================= */
+async function handleFormSubmit(e) {
+  e.preventDefault();
   const statusEl = document.getElementById("uploadStatus");
+  const saveBtn = document.getElementById("saveButton");
+  saveBtn.disabled = true;
 
   try {
-    const finalFileIds = [];
+    const photoFileIds = [];
+
     for (let i = 0; i < pendingPhotos.length; i++) {
       const p = pendingPhotos[i];
-      if (p.existingFileId) {
-        finalFileIds.push(p.existingFileId);
-        continue;
+      if (p.fileId) {
+        photoFileIds.push(p.fileId);
+      } else {
+        statusEl.textContent = `Uploading media ${i + 1} of ${pendingPhotos.length}…`;
+        const res = await callApi({
+          action: "uploadPhoto",
+          filename: p.filename,
+          mimeType: p.mimeType,
+          base64: p.base64
+        });
+        if (res.success) photoFileIds.push(res.fileId);
       }
-      statusEl.textContent = `Uploading photo ${i+1} of ${pendingPhotos.length}...`;
-      const base64 = await fileToBase64(p.file);
-      const res = await callApi({
-        action: "uploadPhoto",
-        filename: p.file.name,
-        mimeType: p.file.type,
-        base64: base64
-      });
-      if (res.success) finalFileIds.push(res.fileId);
     }
-    statusEl.textContent = "";
 
-    const coverFileId = finalFileIds[coverIndex] || finalFileIds[0] || "";
+    statusEl.textContent = "Saving travel memory…";
 
-    const tripPayload = {
-      id: editingId || undefined,
-      district: document.getElementById("district").value,
-      place: document.getElementById("place").value.trim(),
-      dateType: document.getElementById("dateType").value,
-      dateValue: getDateValueFromForm(),
+    const dt = document.getElementById("dateType").value;
+    let dateValue = "";
+    if (dt === "range") {
+      dateValue = document.getElementById("dateFrom").value + ":" + (document.getElementById("dateTo").value || "");
+    } else if (dt !== "unknown") {
+      dateValue = document.getElementById("dateVal").value;
+    }
+
+    const selectedDistrict = document.getElementById("district").value;
+
+    const payload = {
+      action: editingId ? "updateTrip" : "addTrip",
+      id: editingId,
+      district: selectedDistrict,
+      place: document.getElementById("place").value,
+      dateType: dt,
+      dateValue: dateValue,
       rating: Number(document.getElementById("rating").value),
-      notes: document.getElementById("note").value.trim(),
-      tags: document.getElementById("tags").value.split(",").map(s => s.trim()).filter(Boolean),
-      photoFileIds: finalFileIds,
-      coverFileId: coverFileId
+      tags: document.getElementById("tags").value.split(",").map(s => s.trim().toLowerCase()).filter(Boolean),
+      note: document.getElementById("note").value,
+      photoFileIds: photoFileIds,
+      coverPhotoIndex: coverIndex
     };
 
-    if (editingId) {
-      await callApi({ action: "updateTrip", trip: tripPayload });
-    } else {
-      await callApi({ action: "addTrip", trip: tripPayload });
+    await callApi(payload);
+
+    // Auto remove visited district from wishlist
+    if (wishlist.includes(selectedDistrict)) {
+      wishlist = wishlist.filter(item => item !== selectedDistrict);
+      localStorage.setItem("districtWishlist", JSON.stringify(wishlist));
     }
 
     closeModal();
     await loadTrips();
   } catch (err) {
-    alert("Error: " + err.message);
+    alert("Save failed. Please check internet connection and key.");
   } finally {
-    saveButton.disabled = false;
-    saveButton.textContent = "Save Memory";
+    saveBtn.disabled = false;
+    statusEl.textContent = "";
   }
-});
-
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(",")[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 }
 
-/* ======================= DELETE ======================= */
 async function deleteTrip(id) {
-  if (!confirm("Delete this memory?")) return;
+  if (!confirm("Are you sure you want to delete this memory?")) return;
   await callApi({ action: "deleteTrip", id: id });
   await loadTrips();
 }
 
 /* ======================= LIGHTBOX ======================= */
-function openLightbox(photoIds, startIndex) {
-  if (!photoIds || !photoIds.length) return;
-  lightboxPhotos = photoIds;
-  lightboxIndex = startIndex || 0;
+function openLightboxForTrip(tripId) {
+  const t = trips.find(x => x.id === tripId);
+  if (!t || !(t.photoFileIds || []).length) return;
+  lightboxPhotos = t.photoFileIds;
+  lightboxIndex = t.coverPhotoIndex || 0;
   updateLightbox();
   document.getElementById("lightbox").classList.add("show");
 }
 
-function isVideoFile(url) {
-  return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.startsWith("data:video");
+function closeLightbox() {
+  document.getElementById("lightbox").classList.remove("show");
+}
+
+function lightboxNav(dir) {
+  lightboxIndex = (lightboxIndex + dir + lightboxPhotos.length) % lightboxPhotos.length;
+  updateLightbox();
 }
 
 function updateLightbox() {
@@ -1216,7 +1250,6 @@ function updateLightbox() {
   const src = typeof file === "string" ? photoUrl(file) : file.previewUrl;
   const container = document.getElementById("lightbox");
   
-  // Clean up any previously created image or video player
   const oldMedia = container.querySelector("img, video, iframe");
   if (oldMedia) oldMedia.remove();
 
@@ -1239,35 +1272,23 @@ function updateLightbox() {
   document.getElementById("lightboxCount").textContent = `${lightboxIndex + 1} / ${lightboxPhotos.length}`;
 }
 
-function lightboxNav(delta) {
-  lightboxIndex = (lightboxIndex + delta + lightboxPhotos.length) % lightboxPhotos.length;
-  updateLightbox();
+/* ======================= EXTRA TOOLS ======================= */
+function showRandomMemory() {
+  if (!trips.length) return;
+  const rand = trips[Math.floor(Math.random() * trips.length)];
+  document.getElementById("searchBox").value = rand.district;
+  renderCards();
 }
 
-function closeLightbox() {
-  document.getElementById("lightbox").classList.remove("show");
+function exportJSON() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(trips, null, 2));
+  const dlAnchor = document.createElement('a');
+  dlAnchor.setAttribute("href", dataStr);
+  dlAnchor.setAttribute("download", `District_Trails_Backup_${new Date().toISOString().slice(0,10)}.json`);
+  document.body.appendChild(dlAnchor);
+  dlAnchor.click();
+  dlAnchor.remove();
 }
-
-/* ======================= START ======================= */
-renderDateInputs();
-(async function init() {
-  await resolveEditMode();
-  if (isEditMode) {
-    document.getElementById("addDistrictBtn").style.display = "";
-    document.getElementById("randomMemoryBtn").style.display = "";
-    document.getElementById("exportJsonBtn").style.display = "";
-    document.getElementById("passportBtn").style.display = "";
-    document.getElementById("headerPhotoBtn").style.display = "";
-    setupHeaderFocalDrag();
-  }
-
-  document.getElementById("mainFooter").textContent =
-    "© " + new Date().getFullYear() + " Mohit · District Trails";
-
-  updateTimePill();
-  loadHeaderPhoto();
-  loadTrips();
-})();
 </script>
 
 </body>
