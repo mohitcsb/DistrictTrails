@@ -32,8 +32,32 @@
     text-align: center;
     background:
       linear-gradient(rgba(0, 80, 75, .78), rgba(0, 80, 75, .78)),
-      url("https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1600&q=80")
-      center / cover;
+      var(--header-photo, none) var(--header-focal, center) / cover;
+    background-color: #0d9488;
+    position: relative;
+    cursor: default;
+    user-select: none;
+  }
+
+  header.has-focal-control { cursor: grab; }
+  header.has-focal-control:active { cursor: grabbing; }
+
+  .header-by { font-size: .5em; font-weight: normal; opacity: .85; }
+  .header-country { font-family: Georgia, serif; font-style: italic; font-size: 1.15rem; opacity: .85; margin-top: -6px; margin-bottom: 10px; }
+
+  .header-focal-hint {
+    margin-top: 10px; font-size: .75rem; opacity: .7;
+  }
+
+  .header-photo-picker-btn {
+    margin-top: 18px;
+    background: rgba(255,255,255,.18);
+    color: white;
+    border: 1px solid rgba(255,255,255,.5);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: .85rem;
+    cursor: pointer;
   }
 
   header h1 { margin: 0 0 12px; font-family: Georgia, serif; font-size: clamp(2.2rem, 7vw, 4.2rem); }
@@ -49,21 +73,45 @@
     position: relative;
   }
 
+  .datetime-card {
+    text-align: center;
+    background: #fffdf8;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: -35px;
+    margin-bottom: 14px;
+    color: var(--gray);
+    font-size: .88rem;
+    position: relative;
+    z-index: 1;
+  }
+
   .stat {
-    background: white;
     padding: 18px;
     text-align: center;
     border-radius: 14px;
-    box-shadow: 0 8px 25px rgba(0,0,0,.08);
+    box-shadow: 0 4px 14px rgba(0,0,0,.05);
+    border: 1px solid var(--border);
   }
 
-  .stat strong { display: block; color: var(--green); font-size: 1.7rem; }
-  .stat span { color: var(--gray); font-size: .82rem; }
+  .stat-blue { background: #eef5f7; }
+  .stat-terracotta { background: #fbf1ec; }
+  .stat-green { background: #eef6ee; }
+  .stat-brown { background: #f6f1ea; }
+
+  .stat strong { display: block; font-size: 1.7rem; }
+  .stat-blue strong { color: #3b6e7d; }
+  .stat-terracotta strong { color: #b1552f; }
+  .stat-green strong { color: #4f7a4f; }
+  .stat-brown strong { color: #7a5f43; }
+  .stat span { color: var(--dark); font-size: .82rem; font-weight: bold; text-transform: capitalize; }
 
   .progress-wrap { margin: 22px 0; }
   .progress-bar-bg { background: #e2e8f0; border-radius: 20px; height: 12px; overflow: hidden; }
   .progress-bar-fill { background: var(--green); height: 100%; border-radius: 20px; transition: width .4s; }
-  .progress-label { font-size: .85rem; color: var(--gray); margin-top: 6px; text-align: right; }
+  .progress-label { font-size: 1.05rem; color: var(--dark); margin-top: 8px; text-align: right; }
+  .progress-label strong { font-weight: bold; color: var(--green); }
 
   .banner {
     background: #fffbeb;
@@ -86,8 +134,9 @@
   .tab {
     background: none;
     border: 0;
-    padding: 10px 16px;
-    font-weight: bold;
+    padding: 12px 18px;
+    font-weight: 800;
+    font-size: 1.08rem;
     color: var(--gray);
     cursor: pointer;
     white-space: nowrap;
@@ -141,7 +190,25 @@
 
   .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 
-  .card { background: white; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,.04); display: flex; flex-direction: column; }
+  .card {
+    background: white; border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,.04); display: flex; flex-direction: column;
+    transition: transform .25s ease, box-shadow .25s ease;
+    opacity: 0; transform: translateY(18px);
+    animation: cardIn .5s ease forwards;
+  }
+  .card:hover { transform: translateY(-6px); box-shadow: 0 14px 28px rgba(0,0,0,.12); }
+
+  @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.in-view { opacity: 1; transform: translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { animation: none; opacity: 1; transform: none; }
+    .card:hover { transform: none; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
 
   .card-image-wrap { position: relative; }
   .card-image { width: 100%; height: 200px; object-fit: cover; background: #ccfbf1; display: block; cursor: pointer; }
@@ -275,20 +342,25 @@
 
 <body>
 
-<header>
+<header id="mainHeader">
   <div class="container">
-    <h1>District Trails</h1>
-    <p>Every district you've visited, remembered — with photos, notes, and the dates as well as you remember them.</p>
+    <h1>District Trails <span class="header-by">by Mohit</span></h1>
+    <div class="header-country">Bangladesh</div>
+    <p>Not a map. A memory of walking it.</p>
+    <button class="header-photo-picker-btn" id="headerPhotoBtn" onclick="openHeaderPhotoPicker()" style="display:none;">🖼 Set header photo</button>
+    <div class="header-focal-hint" id="headerFocalHint" style="display:none;">Drag on the header to adjust what stays in view</div>
   </div>
 </header>
 
 <main class="container" id="app-view">
 
+  <div class="datetime-card" id="datetimeCard"></div>
+
   <section class="stats-row">
-    <div class="stat"><strong id="districtCount">0</strong><span>Districts visited</span></div>
-    <div class="stat"><strong id="memoryCount">0</strong><span>Travel memories</span></div>
-    <div class="stat"><strong id="photoCount">0</strong><span>Photos saved</span></div>
-    <div class="stat"><strong id="latestDate">—</strong><span>Latest visit</span></div>
+    <div class="stat stat-blue reveal"><strong id="districtCount">0</strong><span>Districts Visited</span></div>
+    <div class="stat stat-terracotta reveal"><strong id="memoryCount">0</strong><span>Travel Memories</span></div>
+    <div class="stat stat-green reveal"><strong id="photoCount">0</strong><span>Photos Saved</span></div>
+    <div class="stat stat-brown reveal"><strong id="latestDate">—</strong><span>Latest Visit</span></div>
   </section>
 
   <div class="progress-wrap">
@@ -309,11 +381,11 @@
   <!-- Memories (cards) view -->
   <section class="section" id="view-cards">
     <div class="section-title">
-      <div><h2>My Travel Journal</h2><p class="hint">Keep a personal record of your journeys.</p></div>
+      <div><h2>My Travel Journal</h2><p class="hint">Every trip, as I remember it.</p></div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="button button-ghost" onclick="showRandomMemory()">🎲 Random Memory</button>
-        <button class="button button-ghost" onclick="exportJSON()">⬇ Export JSON</button>
-        <button class="button button-ghost" onclick="window.print()">🖨 Passport</button>
+        <button class="button button-ghost" id="randomMemoryBtn" onclick="showRandomMemory()" style="display:none;">🎲 Random Memory</button>
+        <button class="button button-ghost" id="exportJsonBtn" onclick="exportJSON()" style="display:none;">⬇ Export JSON</button>
+        <button class="button button-ghost" id="passportBtn" onclick="window.print()" style="display:none;">🖨 Passport</button>
         <button class="button button-primary" id="addDistrictBtn" onclick="openAddModal()" style="display:none;">+ Add District</button>
       </div>
     </div>
@@ -359,7 +431,7 @@
   <div id="passportEntries"></div>
 </div>
 
-<footer>District Trails · My personal travel journal</footer>
+<footer id="mainFooter">District Trails</footer>
 
 <!-- Add/Edit modal -->
 <div id="modal" class="modal">
@@ -448,6 +520,18 @@
   </div>
 </div>
 
+<!-- Header photo picker -->
+<div id="headerPhotoModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Choose a header photo</h2>
+      <button class="close" onclick="closeHeaderPhotoPicker()">×</button>
+    </div>
+    <p class="hint" style="margin-top:14px;">Pick any photo you've already uploaded to a trip — it becomes the page's header background for everyone.</p>
+    <div class="photo-preview-grid" id="headerPhotoChoices" style="margin-top:14px;"></div>
+  </div>
+</div>
+
 <script>
 /* ======================= CONFIG ======================= */
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby0tV1BuxELWA9PQtav2n_hsRNzNR00MMqWaWGbB6K0BpNXHPmgnOgnhb_IL60aYKxEgQ/exec";
@@ -457,7 +541,7 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby0tV1BuxELWA9P
 // your chosen secret. The plaintext key is never stored in this file.
 const ADMIN_KEY_HASH = "d47fded9ed590cb8943265dff91b671ecf4a1deb68ead372a906ce0ccceda756";
 
-const MAX_PHOTOS = 20;
+const MAX_PHOTOS = 50;
 
 // Edit mode only unlocks when the page is opened with ?key=YOUR-SECRET in the
 // URL and that key hashes to ADMIN_KEY_HASH above. Anyone visiting the plain
@@ -502,6 +586,7 @@ let coverIndex = 0;
 let lightboxPhotos = [];
 let lightboxIndex = 0;
 let wishlist = JSON.parse(localStorage.getItem("districtWishlist") || "[]");
+let headerPhotoId = "";
 
 /* ======================= INIT ======================= */
 document.getElementById("district").innerHTML = ALL_DISTRICTS
@@ -551,6 +636,110 @@ async function loadTrips() {
   switchView();
 }
 
+let headerFocalPosition = "50% 50%";
+
+async function loadHeaderPhoto() {
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + "?action=getSettings");
+    const data = await res.json();
+    headerPhotoId = data.headerPhotoId || "";
+    headerFocalPosition = data.headerFocalPosition || "50% 50%";
+    applyHeaderPhoto();
+  } catch (err) {
+    // Keep the plain fallback background if settings can't be reached.
+  }
+}
+
+function applyHeaderPhoto() {
+  const header = document.getElementById("mainHeader");
+  if (headerPhotoId) {
+    header.style.setProperty("--header-photo", "url(" + photoUrl(headerPhotoId) + ")");
+    header.style.setProperty("--header-focal", headerFocalPosition);
+  } else {
+    header.style.removeProperty("--header-photo");
+    header.style.removeProperty("--header-focal");
+  }
+}
+
+function setupHeaderFocalDrag() {
+  const header = document.getElementById("mainHeader");
+  header.classList.add("has-focal-control");
+  document.getElementById("headerFocalHint").style.display = "";
+
+  let dragging = false;
+
+  function positionFromEvent(evt) {
+    const rect = header.getBoundingClientRect();
+    const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+    const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+    const x = Math.round(Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1) * 100);
+    const y = Math.round(Math.min(Math.max((clientY - rect.top) / rect.height, 0), 1) * 100);
+    return x + "% " + y + "%";
+  }
+
+  function startDrag(evt) {
+    if (!headerPhotoId) return;
+    dragging = true;
+    headerFocalPosition = positionFromEvent(evt);
+    applyHeaderPhoto();
+  }
+  function moveDrag(evt) {
+    if (!dragging) return;
+    headerFocalPosition = positionFromEvent(evt);
+    applyHeaderPhoto();
+  }
+  async function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    await callApi({ action: "setSetting", key: "headerFocalPosition", value: headerFocalPosition });
+  }
+
+  header.addEventListener("mousedown", startDrag);
+  window.addEventListener("mousemove", moveDrag);
+  window.addEventListener("mouseup", endDrag);
+  header.addEventListener("touchstart", startDrag, { passive: true });
+  window.addEventListener("touchmove", moveDrag, { passive: true });
+  window.addEventListener("touchend", endDrag);
+}
+
+function openHeaderPhotoPicker() {
+  const allPhotos = [];
+  trips.forEach(function(t){
+    (t.photoFileIds || []).forEach(function(fid){
+      allPhotos.push({ fileId: fid, label: t.district });
+    });
+  });
+  const grid = document.getElementById("headerPhotoChoices");
+  if (!allPhotos.length) {
+    grid.innerHTML = '<p class="hint">No photos uploaded yet — add a memory with photos first.</p>';
+  } else {
+    grid.innerHTML = allPhotos.map(function(p){
+      return `
+        <div class="photo-preview ${p.fileId === headerPhotoId ? "cover" : ""}" style="cursor:pointer;" onclick="setHeaderPhoto('${p.fileId}')">
+          ${p.fileId === headerPhotoId ? '<span class="cover-badge">Current</span>' : ""}
+          <img src="${photoUrl(p.fileId)}" title="${p.label}">
+        </div>
+      `;
+    }).join("");
+  }
+  document.getElementById("headerPhotoModal").classList.add("show");
+}
+
+function closeHeaderPhotoPicker() {
+  document.getElementById("headerPhotoModal").classList.remove("show");
+}
+
+async function setHeaderPhoto(fileId) {
+  headerPhotoId = fileId;
+  applyHeaderPhoto();
+  closeHeaderPhotoPicker();
+  await callApi({ action: "setSetting", key: "headerPhotoId", value: fileId });
+}
+
+document.getElementById("headerPhotoModal").addEventListener("click", function(event){
+  if (event.target.id === "headerPhotoModal") closeHeaderPhotoPicker();
+});
+
 /* ======================= HELPERS ======================= */
 function photoUrl(fileId) {
   return "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w800";
@@ -591,11 +780,29 @@ function populateTagFilter() {
     Array.from(allTags).sort().map(function(tag){ return '<option value="'+tag+'">'+tag+'</option>'; }).join("");
 }
 
+function animateCount_(el, newValue) {
+  const from = Number(el.dataset.count || 0);
+  const to = Number(newValue);
+  if (from === to) { el.textContent = to; return; }
+  const duration = 600;
+  const start = performance.now();
+  function step(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(from + (to - from) * eased);
+    el.textContent = current;
+    if (progress < 1) requestAnimationFrame(step);
+    else el.dataset.count = to;
+  }
+  el.dataset.count = from;
+  requestAnimationFrame(step);
+}
+
 function updateStatsBar() {
   const uniqueDistricts = new Set(trips.map(function(t){ return t.district.toLowerCase(); }));
-  document.getElementById("districtCount").textContent = uniqueDistricts.size;
-  document.getElementById("memoryCount").textContent = trips.length;
-  document.getElementById("photoCount").textContent = trips.reduce(function(sum,t){ return sum + (t.photoFileIds||[]).length; }, 0);
+  animateCount_(document.getElementById("districtCount"), uniqueDistricts.size);
+  animateCount_(document.getElementById("memoryCount"), trips.length);
+  animateCount_(document.getElementById("photoCount"), trips.reduce(function(sum,t){ return sum + (t.photoFileIds||[]).length; }, 0));
 
   if (trips.length) {
     const sorted = [...trips].sort(function(a,b){ return sortKeyForDate(b).localeCompare(sortKeyForDate(a)); });
@@ -606,7 +813,32 @@ function updateStatsBar() {
 
   const pct = Math.round((uniqueDistricts.size / ALL_DISTRICTS.length) * 100);
   document.getElementById("progressFill").style.width = pct + "%";
-  document.getElementById("progressLabel").textContent = uniqueDistricts.size + " of " + ALL_DISTRICTS.length + " districts visited";
+  document.getElementById("progressLabel").innerHTML =
+    "<strong>" + uniqueDistricts.size + "</strong> of <strong>" + ALL_DISTRICTS.length + "</strong> districts visited";
+}
+
+let revealObserver_ = null;
+function observeReveals() {
+  if (!revealObserver_) {
+    revealObserver_ = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in-view");
+          revealObserver_.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+  }
+  document.querySelectorAll(".reveal:not(.in-view)").forEach(function(el){
+    revealObserver_.observe(el);
+  });
+}
+
+function updateDatetimeCard() {
+  const now = new Date();
+  const formatted = now.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }) +
+    " · " + now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  document.getElementById("datetimeCard").textContent = formatted;
 }
 
 function checkOnThisDay() {
@@ -650,13 +882,14 @@ function renderCards() {
     return;
   }
 
-  container.innerHTML = filtered.map(function(t){
+  container.innerHTML = filtered.map(function(t, i){
     const photos = t.photoFileIds || [];
     const coverId = t.coverFileId || photos[0];
     const imgSrc = coverId ? photoUrl(coverId) : "";
     const extra = photos.length > 1 ? '<span class="photo-count-badge">+' + (photos.length-1) + '</span>' : "";
+    const delay = Math.min(i, 10) * 60;
     return `
-      <article class="card">
+      <article class="card" style="animation-delay:${delay}ms;">
         <div class="card-image-wrap">
           ${imgSrc
             ? `<img class="card-image" src="${imgSrc}" alt="${t.district}" onclick='openLightbox(${JSON.stringify(photos)}, 0)'>`
@@ -683,6 +916,7 @@ function renderCards() {
   }).join("");
 
   renderPassport(filtered);
+  observeReveals();
 }
 
 /* ======================= TIMELINE VIEW ======================= */
@@ -693,13 +927,14 @@ function renderTimeline() {
   if (!sorted.length) { el.innerHTML = '<div class="empty">No memories yet.</div>'; return; }
   el.innerHTML = '<div class="timeline">' + sorted.map(function(t){
     return `
-      <div class="timeline-item">
+      <div class="timeline-item reveal">
         <div class="timeline-date">${formatDateValue(t)}</div>
         <strong>${t.district}</strong>${t.place ? " — " + t.place : ""}
         <p class="note" style="margin:8px 0 0;">${t.notes || ""}</p>
       </div>
     `;
   }).join("") + '</div>';
+  observeReveals();
 }
 
 /* ======================= MAP (grid by division) VIEW ======================= */
@@ -709,7 +944,7 @@ function renderMap() {
   const el = document.getElementById("mapGrid");
   el.innerHTML = Object.keys(DIVISIONS).map(function(div){
     return `
-      <div class="division-block">
+      <div class="division-block reveal">
         <div class="division-title">${div} Division</div>
         <div class="district-grid">
           ${DIVISIONS[div].map(function(d){
@@ -720,6 +955,7 @@ function renderMap() {
       </div>
     `;
   }).join("");
+  observeReveals();
 }
 
 /* ======================= STATS VIEW ======================= */
@@ -748,25 +984,26 @@ function renderStats() {
   const maxYear = Math.max(1, ...years.map(function(e){ return e[1]; }));
 
   document.getElementById("statsGrid").innerHTML = `
-    <div class="stats-card">
+    <div class="stats-card reveal">
       <h4>Most-visited districts</h4>
       ${mostVisited.length ? mostVisited.map(function(e){
         return `<div class="bar-row"><span class="bar-label">${e[0]}</span><div class="bar-track"><div class="bar-fill" style="width:${(e[1]/maxVisits*100)}%"></div></div><span class="bar-value">${e[1]}</span></div>`;
       }).join("") : '<p class="hint">No data yet.</p>'}
     </div>
-    <div class="stats-card">
+    <div class="stats-card reveal">
       <h4>Highest-rated districts</h4>
       ${topRated.length ? topRated.map(function(e){
         return `<div class="bar-row"><span class="bar-label">${e[0]}</span><div class="bar-track"><div class="bar-fill" style="width:${(e[1]/5*100)}%"></div></div><span class="bar-value">${e[1].toFixed(1)}</span></div>`;
       }).join("") : '<p class="hint">No data yet.</p>'}
     </div>
-    <div class="stats-card" style="grid-column:1/-1;">
+    <div class="stats-card reveal" style="grid-column:1/-1;">
       <h4>Visits per year</h4>
       ${years.length ? years.map(function(e){
         return `<div class="bar-row"><span class="bar-label">${e[0]}</span><div class="bar-track"><div class="bar-fill" style="width:${(e[1]/maxYear*100)}%"></div></div><span class="bar-value">${e[1]}</span></div>`;
       }).join("") : '<p class="hint">No dated visits yet.</p>'}
     </div>
   `;
+  observeReveals();
 }
 
 /* ======================= WISHLIST VIEW ======================= */
@@ -1047,7 +1284,20 @@ renderDateInputs();
   await resolveEditMode();
   if (isEditMode) {
     document.getElementById("addDistrictBtn").style.display = "";
+    document.getElementById("randomMemoryBtn").style.display = "";
+    document.getElementById("exportJsonBtn").style.display = "";
+    document.getElementById("passportBtn").style.display = "";
+    document.getElementById("headerPhotoBtn").style.display = "";
+    setupHeaderFocalDrag();
   }
+
+  document.getElementById("mainFooter").textContent =
+    "© " + new Date().getFullYear() + " Mohit · District Trails";
+
+  updateDatetimeCard();
+  setInterval(updateDatetimeCard, 60 * 1000);
+
+  loadHeaderPhoto();
   loadTrips();
 })();
 </script>
