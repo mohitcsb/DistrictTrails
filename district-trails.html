@@ -154,25 +154,34 @@
 
   .tabs {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     overflow-x: auto;
     margin: 25px 0 20px;
-    border-bottom: 2px solid var(--border);
+    flex-wrap: wrap;
   }
 
   .tab {
-    background: none;
-    border: 0;
-    padding: 12px 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 16px;
     font-weight: 800;
-    font-size: 1.08rem;
+    font-size: .95rem;
     color: var(--gray);
     cursor: pointer;
     white-space: nowrap;
-    border-bottom: 3px solid transparent;
+    background: #f8fafc;
+    opacity: .72;
+    transition: opacity .15s ease, transform .15s ease;
   }
+  .tab:hover { opacity: 1; transform: translateY(-2px); }
 
-  .tab.active { color: var(--green); border-bottom-color: var(--green); }
+  .tab-blue { background: #eef5f7; color: #3b6e7d; }
+  .tab-terracotta { background: #fbf1ec; color: #b1552f; }
+  .tab-green { background: #eef6ee; color: #4f7a4f; }
+  .tab-brown { background: #f6f1ea; color: #7a5f43; }
+  .tab-amber { background: #fffbeb; color: #92620c; }
+
+  .tab.active { opacity: 1; box-shadow: 0 4px 12px rgba(0,0,0,.08); border-color: transparent; }
 
   .toolbar {
     display: flex;
@@ -183,9 +192,9 @@
   }
 
   .search-box {
-    flex: 0 1 340px;
-    min-width: 200px;
-    padding: 12px 14px;
+    flex: 0 1 420px;
+    min-width: 220px;
+    padding: 13px 16px;
     border: 1px solid var(--border);
     border-radius: 9px;
     font-size: 1rem;
@@ -291,7 +300,7 @@
 
   /* Map / grid by division */
   .division-block { margin-bottom: 24px; }
-  .division-title { font-weight: bold; color: var(--dark); margin-bottom: 10px; font-size: 1.05rem; text-align: center; }
+  .division-title { font-weight: bold; color: var(--dark); margin-bottom: 10px; font-size: 1.05rem; text-align: left; }
   .district-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
   .district-tile {
     padding: 12px 8px; text-align: center; border-radius: 10px; font-size: .82rem;
@@ -311,12 +320,16 @@
   .bar-value { width: 22px; text-align: right; color: var(--gray); font-size: .72rem; }
 
   /* Wishlist */
-  .wishlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
   .wishlist-tile {
-    padding: 14px 10px; text-align: center; border-radius: 10px; font-size: .85rem;
+    padding: 10px 8px; text-align: center; border-radius: 20px; font-size: .88rem;
     border: 1px solid var(--border); background: white; cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0,0,0,.05);
+    transition: transform .15s ease, box-shadow .15s ease;
   }
-  .wishlist-tile.marked { background: #fef3c7; border-color: #fde68a; font-weight: bold; }
+  .wishlist-tile:hover { transform: translateY(-3px); box-shadow: 0 8px 18px rgba(0,0,0,.1); }
+  .wishlist-tile .star-icon { display: block; font-size: 1.3rem; margin-bottom: 4px; opacity: .3; }
+  .wishlist-tile.marked { background: #fffbeb; border-color: var(--amber); font-weight: bold; }
+  .wishlist-tile.marked .star-icon { opacity: 1; color: var(--amber); }
 
   /* Modal */
   .modal { display: none; position: fixed; inset: 0; z-index: 20; padding: 20px; background: rgba(0,0,0,.65); align-items: center; justify-content: center; overflow-y: auto; }
@@ -429,17 +442,17 @@
 
   <div class="progress-wrap">
     <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
-    <div class="progress-label" id="progressLabel">0 of 64 Districts Visited</div>
+    <div class="progress-label" id="progressLabel">0 of 64 districts visited</div>
   </div>
 
   <div class="banner" id="onThisDayBanner" style="display:none;"></div>
 
   <div class="tabs">
-    <button class="tab active" data-view="cards">Memories</button>
-    <button class="tab" data-view="timeline">Timeline</button>
-    <button class="tab" data-view="map">Map</button>
-    <button class="tab" data-view="stats">Stats</button>
-    <button class="tab" data-view="wishlist">Wishlist</button>
+    <button class="tab tab-blue active" data-view="cards">Memories</button>
+    <button class="tab tab-terracotta" data-view="timeline">Timeline</button>
+    <button class="tab tab-green" data-view="map">Map</button>
+    <button class="tab tab-brown" data-view="stats">Stats</button>
+    <button class="tab tab-amber" data-view="wishlist">Wishlist</button>
   </div>
 
   <!-- Memories (cards) view -->
@@ -455,8 +468,8 @@
     </div>
 
     <div class="toolbar">
+      <input type="search" id="searchBox" class="search-box" placeholder="Search district, place or note..." oninput="cardsPage=1; renderCards();">
       <select id="tagFilter" class="tag-filter" onchange="cardsPage=1; renderCards();"><option value="">All tags</option></select>
-      <input type="search" id="searchBox" class="search-box" placeholder="Search district, place, or note..." oninput="cardsPage=1; renderCards();">
     </div>
 
     <div id="tripCards" class="cards"></div>
@@ -473,7 +486,7 @@
   <!-- Map view -->
   <section class="section" id="view-map" style="display:none;">
     <div class="section-title"><h2>District Map</h2></div>
-    <p class="hint">Visited districts, organized by division</p>
+    <p class="hint" style="font-size: 0.85rem;">Visited districts, organized by division</p>
     <div id="mapGrid"></div>
   </section>
 
@@ -618,12 +631,12 @@
 
 <script>
 /* ======================= CONFIG ======================= */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAvZQzWWnmd8ef9mSIqi0ob0NUqNqjJ4a2M2n2xzGjjEau8Qi3E4EnAqSN7qMB94xB9g/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzmiXhfhz4R8mLh9tI5lnbhjK4nFXirEgTWaiNjRM36vJjSdkPG_ncbF_A6T5YORTTIvw/exec";
 
 // This is a SHA-256 hash of your secret key, NOT the key itself — safe to
 // commit to a public repo. See SETUP_GUIDE.md for how to generate this from
 // your chosen secret. The plaintext key is never stored in this file.
-const ADMIN_KEY_HASH = "d47fded9ed590cb8943265dff91b671ecf4a1deb68ead372a906ce0ccceda756";
+const ADMIN_KEY_HASH = "331226313d66abddf1f8e2b92c9159c2c26c4700c18b9ccc322c786beb2cf167";
 
 const MAX_PHOTOS = 50;
 
@@ -702,7 +715,6 @@ function switchView() {
 async function callApi(payload) {
   const res = await fetch(APPS_SCRIPT_URL, {
     method: "POST",
-	headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(Object.assign({ adminKey: adminKeyPlaintext }, payload))
   });
   return res.json();
@@ -857,20 +869,33 @@ function photoUrlHiRes(fileId) {
   return "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w1920";
 }
 
+function safeDate_(dateStr) {
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 function formatDateValue(trip) {
   const t = trip.dateType, v = trip.dateValue || "";
-  if (t === "exact") return new Date(v + "T00:00:00").toLocaleDateString(undefined, {day:"numeric", month:"short", year:"numeric"});
+  if (!v && t !== "unknown") return "Date unknown";
+
+  if (t === "exact") {
+    const d = safeDate_(v + "T00:00:00");
+    return d ? d.toLocaleDateString(undefined, {day:"numeric", month:"short", year:"numeric"}) : "Date unknown";
+  }
   if (t === "monthYear") {
     const [y,m] = v.split("-");
-    return new Date(y, (m||1)-1).toLocaleDateString(undefined, {month:"long", year:"numeric"});
+    const d = y && m ? safeDate_(y + "-" + m + "-01T00:00:00") : null;
+    return d ? d.toLocaleDateString(undefined, {month:"long", year:"numeric"}) : "Date unknown";
   }
-  if (t === "year") return v;
-  if (t === "approxYear") return "Around " + v;
+  if (t === "year") return v || "Date unknown";
+  if (t === "approxYear") return v ? ("Around " + v) : "Date unknown";
   if (t === "range") {
     const [from,to] = v.split(":");
-    const f = new Date(from + "T00:00:00").toLocaleDateString(undefined, {day:"numeric", month:"short", year:"numeric"});
-    const tt = to ? new Date(to + "T00:00:00").toLocaleDateString(undefined, {day:"numeric", month:"short", year:"numeric"}) : "";
-    return tt ? (f + " – " + tt) : f;
+    const fd = from ? safeDate_(from + "T00:00:00") : null;
+    if (!fd) return "Date unknown";
+    const f = fd.toLocaleDateString(undefined, {day:"numeric", month:"short", year:"numeric"});
+    const td = to ? safeDate_(to + "T00:00:00") : null;
+    return td ? (f + " – " + td.toLocaleDateString(undefined, {day:"numeric", month:"short", year:"numeric"})) : f;
   }
   return "Date unknown";
 }
@@ -938,7 +963,7 @@ function updateStatsBar() {
   const pct = Math.round((uniqueDistricts.size / ALL_DISTRICTS.length) * 100);
   document.getElementById("progressFill").style.width = pct + "%";
   document.getElementById("progressLabel").innerHTML =
-    "<strong>" + uniqueDistricts.size + "</strong> of <strong>" + ALL_DISTRICTS.length + "</strong> districts visited";
+    "<strong>" + uniqueDistricts.size + "</strong> of <strong>" + ALL_DISTRICTS.length + "</strong> Districts Visited";
 }
 
 let revealObserver_ = null;
@@ -1211,7 +1236,7 @@ function renderWishlist() {
           ${remainingInDivision.map(function(d){
             const marked = wishlist.includes(d);
             const clickable = isEditMode ? `onclick="toggleWishlist('${d}')"` : "";
-            return `<div class="district-tile ${marked ? "wishlist-marked" : ""}" style="cursor:${isEditMode ? "pointer" : "default"};" ${clickable}>${marked ? "★ " : ""}${d}</div>`;
+            return `<div class="wishlist-tile ${marked ? "marked" : ""}" style="cursor:${isEditMode ? "pointer" : "default"};" ${clickable}><span class="star-icon">★</span>${d}</div>`;
           }).join("")}
         </div>
       </div>
