@@ -948,7 +948,15 @@ function animateCount_(el, newValue) {
 }
 
 function updateStatsBar() {
-  const uniqueDistricts = new Set(trips.map(function(t){ return t.district.toLowerCase(); }));
+  const uniqueDistricts = new Set(
+  trips
+    .map(function(t) {
+      // Check for both capitalized 'District' and lowercase 'district', fallback to empty string
+      const districtValue = t.District || t.district || "";
+      return districtValue.toLowerCase().trim();
+    })
+    .filter(Boolean) // Removes empty "" strings from the set
+);
   animateCount_(document.getElementById("districtCount"), uniqueDistricts.size);
   animateCount_(document.getElementById("memoryCount"), trips.length);
   animateCount_(document.getElementById("photoCount"), trips.reduce(function(sum,t){ return sum + (t.photoFileIds||[]).length; }, 0));
