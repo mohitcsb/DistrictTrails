@@ -870,6 +870,12 @@ function photoUrlHiRes(fileId) {
 }
 
 function safeDate_(dateStr) {
+  if (!dateStr) return null;
+  // Parse YYYY-MM-DD directly into local year, month, day to avoid UTC shifts
+  const parts = dateStr.split("-").map(Number);
+  if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+    return new Date(parts[0], parts[1] - 1, parts[2]);
+  }
   const d = new Date(dateStr);
   return isNaN(d.getTime()) ? null : d;
 }
@@ -879,22 +885,22 @@ function formatDateValue(trip) {
   if (!v && t !== "unknown") return "Date unknown";
 
   if (t === "exact") {
-    const d = safeDate_(v + "T00:00:00");
+    const d = safeDate_(v);
     return d ? d.toLocaleDateString(undefined, {day:"numeric", month:"short", year:"numeric"}) : "Date unknown";
   }
   if (t === "monthYear") {
-    const [y,m] = v.split("-");
-    const d = y && m ? safeDate_(y + "-" + m + "-01T00:00:00") : null;
+    const [y, m] = v.split("-");
+    const d = y && m ? new Date(Number(y), Number(m) - 1, 1) : null;
     return d ? d.toLocaleDateString(undefined, {month:"long", year:"numeric"}) : "Date unknown";
   }
   if (t === "year") return v || "Date unknown";
   if (t === "approxYear") return v ? ("Around " + v) : "Date unknown";
   if (t === "range") {
-    const [from,to] = v.split(":");
-    const fd = from ? safeDate_(from + "T00:00:00") : null;
+    const [from, to] = v.split(":");
+    const fd = safeDate_(from);
     if (!fd) return "Date unknown";
     const f = fd.toLocaleDateString(undefined, {day:"numeric", month:"short", year:"numeric"});
-    const td = to ? safeDate_(to + "T00:00:00") : null;
+    const td = safeDate_(to);
     return td ? (f + " – " + td.toLocaleDateString(undefined, {day:"numeric", month:"short", year:"numeric"})) : f;
   }
   return "Date unknown";
