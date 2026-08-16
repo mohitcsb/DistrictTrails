@@ -1018,11 +1018,12 @@ function ordinalSuffix_(n) {
 }
 
 function updateDatetimeCard() {
-  const now = new Date(); // Gets current system time
+  const now = new Date();
   const day = ordinalSuffix_(now.getDate());
   const month = now.toLocaleDateString(undefined, { month: "long" });
   const year = now.getFullYear();
-  const time = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", second: "2-digit" });
+  // Formatted for Hours and Minutes only
+  const time = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 
   const card = document.getElementById("datetimeCard");
   if (card) {
@@ -1037,10 +1038,10 @@ async function handleRefresh() {
     btn.disabled = true;
   }
 
-  // 1. Immediately update system time on click
+  // Updates time immediately when clicked
   updateDatetimeCard();
 
-  // 2. Fetch fresh data from Google Sheets
+  // Re-fetches data from Google Sheets
   try {
     await loadHeaderPhoto();
     await loadTrips();
@@ -1048,7 +1049,7 @@ async function handleRefresh() {
     console.error("Refresh error:", err);
   }
 
-  // 3. Update system time again when load completes
+  // Updates time again when loading finishes
   updateDatetimeCard();
 
   if (btn) {
